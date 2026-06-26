@@ -1290,12 +1290,15 @@
     // Strip Sefaria footnotes / markers, but KEEP bold/italic so the Steinsaltz
     // literal translation (bold) stays distinct from explanatory additions.
     const _readerTmp = document.createElement('div');
-    function cleanSefaria(html){
+    function cleanSefaria(html, keepBold){
       _readerTmp.innerHTML = String(html||'');
       _readerTmp.querySelectorAll('sup, .footnote, .footnote-marker, i.footnote, .mam-spi-pe, .mam-spi-samekh').forEach(n=>n.remove());
-      let out = _readerTmp.innerHTML;
-      // keep only safe formatting tags (bold/italic); drop everything else
-      out = out.replace(/<(?!\/?(b|strong|i|em)\b)[^>]*>/gi,'');
+      if(!keepBold){
+        // uniform plain text (Tanach etc.) — no bold/size variation
+        return _readerTmp.textContent.replace(/\s+/g,' ').trim();
+      }
+      // keep only bold/italic (Steinsaltz literal vs. explanation) — drop other tags
+      let out = _readerTmp.innerHTML.replace(/<(?!\/?(b|strong|i|em)\b)[^>]*>/gi,'');
       return out.replace(/\s+/g,' ').trim();
     }
 
@@ -1319,12 +1322,16 @@
         body.innerHTML='';
         const len = Math.max(heArr.length, enArr.length);
         for(let i=0;i<len;i++){
-          let he=cleanSefaria(heArr[i]);
-          const en=cleanSefaria(enArr[i]);
+          // Bold (Steinsaltz literal vs. explanation) only applies to Gemara/Mishna.
+          const keepBold = (readerCategory==='gemara' || readerCategory==='mishna');
+          let he=cleanSefaria(heArr[i], keepBold);
+          let en=cleanSefaria(enArr[i], keepBold);
           if(!readerTaamim) he=stripTaamim(he);
           if(!he && !en) continue;
+          const heHtml = keepBold ? he : escapeHtml(he);
+          const enHtml = keepBold ? en : escapeHtml(en);
           const v=document.createElement('div'); v.className='verse';
-          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${he}</div>`:''}${en?`<div class="en">${en}</div>`:''}</div>`;
+          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${heHtml}</div>`:''}${en?`<div class="en">${enHtml}</div>`:''}</div>`;
           body.appendChild(v);
         }
         body.scrollTop=0;
