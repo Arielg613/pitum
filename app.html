@@ -556,7 +556,8 @@
                 <div class="chat-thread-head">
                   <button class="chat-back" id="chat-back">←</button>
                   <div class="avatar sm" id="thread-avatar">?</div>
-                  <div class="chat-li-name" id="thread-name">Friend</div>
+                  <div class="chat-li-name" id="thread-name" style="flex:1;">Friend</div>
+                  <button class="btn-sm btn-out" id="thread-call" title="Video call">📹</button>
                 </div>
                 <div class="chat-messages" id="chat-messages"></div>
                 <div class="chat-input"><input type="text" id="chat-input-text" placeholder="Type a message…" autocomplete="off" /><button class="chat-send" id="chat-send">Send</button></div>
@@ -1235,8 +1236,10 @@
       ['badge-messages','badge-messages-m'].forEach(id=>{ const b=$(id); if(!b)return; b.textContent=n; b.classList.toggle('show',n>0); });
     }
 
+    let activeThreadUser = null;
     async function openThread(cid, otherId, info){
       activeConvId = cid;
+      activeThreadUser = { uid:otherId, name:info.name||'Friend', photoURL:info.photoURL||'' };
       $('chat-wrap')?.classList.add('thread-open');
       document.querySelector('.chat-wrap')?.classList.add('thread-open');
       $('thread-avatar').innerHTML = info.photoURL?`<img src="${escapeHtml(info.photoURL)}" referrerpolicy="no-referrer">`:(info.name||'?').charAt(0).toUpperCase();
@@ -1686,6 +1689,8 @@
 
     // Join modal "Call" button
     $('jm-call')?.addEventListener('click',()=>{ if(joinTarget){ $('join-modal').classList.remove('show'); startCall(joinTarget.uid, joinTarget.name, joinTarget.photoURL); } });
+    // Chat thread "Call" button
+    $('thread-call')?.addEventListener('click',()=>{ if(activeThreadUser) startCall(activeThreadUser.uid, activeThreadUser.name, activeThreadUser.photoURL); });
 
     /* ═══════════ Firestore listeners (includes chat) ═══════════ */
     function startListeners(){
