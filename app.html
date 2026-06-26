@@ -4,22 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pitom — Learn Live</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --cream:    #FAF7F2;
       --cream-2:  #F3EDE3;
+      --surface:  #FFFFFF;
       --ink:      #1C1611;
       --ink-soft: #4A3F35;
+      --ink-mute: #8A7B6B;
       --gold:     #C8832A;
       --gold-lt:  #E4A84B;
       --gold-bg:  #FDF3E2;
       --border:   rgba(28,22,17,0.10);
+      --border-2: rgba(28,22,17,0.06);
       --green:    #27C93F;
+      --red:      #C0392B;
       --serif:    'Fraunces', Georgia, serif;
       --sans:     'Inter', system-ui, sans-serif;
+      --shadow:   0 10px 36px rgba(28,22,17,0.06);
+      --shadow-sm:0 2px 8px rgba(28,22,17,0.05);
+    }
+    html[data-theme="dark"] {
+      --cream:    #16130F;
+      --cream-2:  #1F1B16;
+      --surface:  #211C16;
+      --ink:      #F4EDE3;
+      --ink-soft: #C9BCAB;
+      --ink-mute: #8A7B6B;
+      --gold:     #E4A84B;
+      --gold-lt:  #F0BE68;
+      --gold-bg:  #2A2114;
+      --border:   rgba(244,237,227,0.12);
+      --border-2: rgba(244,237,227,0.07);
+      --shadow:   0 10px 36px rgba(0,0,0,0.4);
+      --shadow-sm:0 2px 8px rgba(0,0,0,0.3);
     }
 
     body {
@@ -28,242 +49,257 @@
       font-family: var(--sans);
       min-height: 100svh;
       line-height: 1.55;
+      transition: background 0.3s, color 0.3s;
     }
 
-    /* ───────── ONBOARDING (sign-in + profile) ───────── */
+    /* ═════════ LOADER ═════════ */
+    #loader {
+      position: fixed; inset: 0; background: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px; z-index: 300;
+    }
+    #loader .spark { font-size: 2rem; animation: pulse 1.5s infinite; }
+    #loader p { color: var(--ink-soft); font-size: 0.9rem; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.75);} }
+
+    /* ═════════ ONBOARDING ═════════ */
     #onboard {
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 5vw;
+      min-height: 100svh; display: none; flex-direction: column;
+      align-items: center; justify-content: center; padding: 40px 5vw;
     }
     .brand {
-      font-family: var(--serif);
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: var(--ink);
-      margin-bottom: 36px;
-      text-decoration: none;
+      font-family: var(--serif); font-size: 1.4rem; font-weight: 600;
+      color: var(--ink); margin-bottom: 36px; text-decoration: none;
     }
     .brand span { color: var(--gold); font-style: italic; font-weight: 300; margin-left: 6px; }
-
     .card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px;
-      width: 100%;
-      max-width: 480px;
-      box-shadow: 0 12px 40px rgba(28,22,17,0.07);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      padding: 40px; width: 100%; max-width: 480px; box-shadow: var(--shadow);
     }
-
     #step-signin { text-align: center; }
-    #step-signin h1 {
-      font-family: var(--serif);
-      font-size: 1.9rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 10px;
-    }
+    #step-signin h1 { font-family: var(--serif); font-size: 1.9rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 10px; }
     #step-signin p { color: var(--ink-soft); font-size: 0.95rem; font-weight: 300; margin-bottom: 32px; }
-
     .google-btn {
-      display: inline-flex; align-items: center; gap: 12px;
-      background: #fff; border: 1px solid var(--border); border-radius: 100px;
-      padding: 13px 28px; font-family: var(--sans); font-size: 0.95rem; font-weight: 500;
-      color: var(--ink); cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;
-      box-shadow: 0 2px 8px rgba(28,22,17,0.06);
+      display: inline-flex; align-items: center; gap: 12px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 100px; padding: 13px 28px;
+      font-family: var(--sans); font-size: 0.95rem; font-weight: 500; color: var(--ink);
+      cursor: pointer; transition: box-shadow 0.2s, transform 0.15s; box-shadow: var(--shadow-sm);
     }
-    .google-btn:hover { box-shadow: 0 6px 20px rgba(28,22,17,0.1); transform: translateY(-1px); }
-
+    .google-btn:hover { box-shadow: 0 6px 20px rgba(28,22,17,0.12); transform: translateY(-1px); }
     #step-profile { display: none; }
     .welcome { margin-bottom: 28px; }
-    .welcome h2 {
-      font-family: var(--serif); font-size: 1.5rem; font-weight: 600;
-      letter-spacing: -0.02em; margin-bottom: 4px;
-    }
+    .welcome h2 { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
     .welcome p { font-size: 0.85rem; color: var(--ink-soft); font-weight: 300; }
 
     .field { margin-bottom: 20px; }
-    label {
-      display: block; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em;
-      text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px;
+    label { display: block; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
+    input[type="text"], textarea, select {
+      width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 11px;
+      background: var(--cream); font-family: var(--sans); font-size: 0.92rem; color: var(--ink);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s; appearance: none; resize: vertical;
     }
-    input[type="text"], select {
-      width: 100%; padding: 12px 16px; border: 1px solid var(--border);
-      border-radius: 12px; background: var(--cream); font-family: var(--sans);
-      font-size: 0.95rem; color: var(--ink); outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s; appearance: none;
-    }
-    input[type="text"]:focus, select:focus {
-      border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,131,42,0.12);
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,131,42,0.15);
     }
     .select-wrap { position: relative; }
-    .select-wrap::after {
-      content: '▾'; position: absolute; right: 16px; top: 50%;
-      transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; font-size: 0.85rem;
-    }
+    .select-wrap::after { content: '▾'; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; font-size: 0.8rem; }
     .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip {
-      padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border);
-      background: var(--cream); font-family: var(--sans); font-size: 0.85rem;
-      font-weight: 400; color: var(--ink-soft); cursor: pointer;
-      transition: all 0.15s; user-select: none;
+      padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border); background: var(--cream);
+      font-family: var(--sans); font-size: 0.85rem; font-weight: 400; color: var(--ink-soft);
+      cursor: pointer; transition: all 0.15s; user-select: none;
     }
     .chip:hover { border-color: var(--gold); color: var(--gold); }
     .chip.selected { background: var(--gold-bg); border-color: var(--gold); color: var(--gold); font-weight: 500; }
-
     .submit-btn {
-      width: 100%; background: var(--gold); color: #fff; font-family: var(--sans);
-      font-size: 1rem; font-weight: 500; padding: 14px; border-radius: 100px;
-      border: none; cursor: pointer; margin-top: 28px;
+      width: 100%; background: var(--gold); color: #fff; font-family: var(--sans); font-size: 1rem;
+      font-weight: 500; padding: 14px; border-radius: 100px; border: none; cursor: pointer; margin-top: 28px;
       transition: background 0.2s, transform 0.15s; box-shadow: 0 4px 16px rgba(200,131,42,0.25);
     }
     .submit-btn:hover { background: var(--gold-lt); transform: translateY(-1px); }
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .error-msg { color: #c0392b; font-size: 0.82rem; margin-top: 12px; text-align: center; display: none; }
+    .error-msg { color: var(--red); font-size: 0.82rem; margin-top: 12px; text-align: center; display: none; }
 
-    /* ───────── LIVE APP ───────── */
-    #app { display: none; }
+    /* ═════════ APP SHELL ═════════ */
+    #shell { display: none; min-height: 100svh; }
+    .layout { display: flex; min-height: 100svh; }
 
-    nav {
-      position: sticky; top: 0; z-index: 50;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 5vw; height: 62px;
-      background: rgba(250,247,242,0.9); backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
+    .sidebar {
+      width: 248px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 22px 16px; position: sticky; top: 0; height: 100svh;
     }
-    .logo { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; color: var(--ink); text-decoration: none; }
-    .logo span { color: var(--gold); font-style: italic; font-weight: 300; font-size: 0.9rem; margin-left: 5px; }
-    .nav-right { display: flex; align-items: center; gap: 16px; }
-    .nav-user { font-size: 0.85rem; color: var(--ink-soft); }
-    .nav-user strong { color: var(--ink); font-weight: 600; }
-    .signout {
-      font-size: 0.82rem; color: var(--ink-soft); background: none;
-      border: 1px solid var(--border); border-radius: 100px; padding: 6px 14px;
-      cursor: pointer; transition: border-color 0.2s, color 0.2s;
+    .sidebar .logo {
+      font-family: var(--serif); font-size: 1.3rem; font-weight: 600; color: var(--ink);
+      text-decoration: none; padding: 4px 10px 22px; display: block;
     }
-    .signout:hover { border-color: var(--gold); color: var(--gold); }
+    .sidebar .logo span { color: var(--gold); font-style: italic; font-weight: 300; font-size: 0.9rem; margin-left: 5px; }
 
-    .wrap {
-      max-width: 1080px; margin: 0 auto; padding: 36px 5vw 80px;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 12px;
+      color: var(--ink-soft); font-size: 0.92rem; font-weight: 500; cursor: pointer;
+      transition: background 0.15s, color 0.15s; border: none; background: none; width: 100%; text-align: left;
+      font-family: var(--sans); position: relative;
     }
-    @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
+    .nav-item .ic { width: 20px; height: 20px; flex-shrink: 0; opacity: 0.85; }
+    .nav-item:hover { background: var(--cream-2); color: var(--ink); }
+    .nav-item.active { background: var(--gold-bg); color: var(--gold); }
+    .nav-item.active .ic { opacity: 1; }
+    .nav-badge {
+      margin-left: auto; background: var(--gold); color: #fff; font-size: 0.68rem; font-weight: 700;
+      min-width: 19px; height: 19px; padding: 0 5px; border-radius: 100px; display: none;
+      align-items: center; justify-content: center;
+    }
+    .nav-badge.show { display: flex; }
 
-    .panel {
-      background: #fff; border: 1px solid var(--border); border-radius: 18px;
-      padding: 28px; box-shadow: 0 10px 36px rgba(28,22,17,0.06);
-    }
-    .panel-title { font-family: var(--serif); font-size: 1.3rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
-    .panel-sub { font-size: 0.85rem; color: var(--ink-soft); font-weight: 300; margin-bottom: 22px; }
+    .sidebar-foot { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+    .mini-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; }
+    .mini-user .avatar { width: 36px; height: 36px; }
+    .mini-user-info { min-width: 0; flex: 1; }
+    .mini-user-name { font-size: 0.85rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-user-sub { font-size: 0.72rem; color: var(--ink-mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .ref-preview {
-      background: var(--gold-bg); border: 1px dashed rgba(200,131,42,0.4);
-      border-radius: 12px; padding: 14px 16px; margin: 4px 0 20px;
-      font-size: 0.9rem; color: var(--ink-soft);
-    }
-    .ref-preview strong {
-      display: block; font-family: var(--serif); font-size: 1.15rem;
-      color: var(--gold); font-weight: 600; margin-top: 2px;
-    }
-    .go-btn {
-      width: 100%; background: var(--gold); color: #fff; font-family: var(--sans);
-      font-size: 1rem; font-weight: 500; padding: 14px; border-radius: 100px;
-      border: none; cursor: pointer; transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 4px 16px rgba(200,131,42,0.25);
-    }
+    .main { flex: 1; min-width: 0; padding: 32px 40px 80px; max-width: 1100px; }
+    @media (max-width: 1000px) { .main { padding: 24px 22px 100px; } }
+
+    .view { display: none; }
+    .view.active { display: block; animation: fade 0.25s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .view-head { margin-bottom: 26px; }
+    .view-head h1 { font-family: var(--serif); font-size: 1.9rem; font-weight: 600; letter-spacing: -0.025em; }
+    .view-head p { color: var(--ink-soft); font-size: 0.92rem; font-weight: 300; margin-top: 3px; }
+
+    /* ── Cards / panels ── */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 26px; box-shadow: var(--shadow); }
+    .panel + .panel { margin-top: 22px; }
+    .panel-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 3px; }
+    .panel-sub { font-size: 0.84rem; color: var(--ink-soft); font-weight: 300; margin-bottom: 20px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+    @media (max-width: 880px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── Learn picker ── */
+    .ref-preview { background: var(--gold-bg); border: 1px dashed rgba(200,131,42,0.4); border-radius: 12px; padding: 14px 16px; margin: 4px 0 18px; font-size: 0.88rem; color: var(--ink-soft); }
+    .ref-preview strong { display: block; font-family: var(--serif); font-size: 1.15rem; color: var(--gold); font-weight: 600; margin-top: 2px; }
+    .go-btn { width: 100%; background: var(--gold); color: #fff; font-family: var(--sans); font-size: 1rem; font-weight: 500; padding: 14px; border-radius: 100px; border: none; cursor: pointer; transition: background 0.2s, transform 0.15s; box-shadow: 0 4px 16px rgba(200,131,42,0.25); }
     .go-btn:hover { background: var(--gold-lt); transform: translateY(-1px); }
     .go-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .go-btn.live { background: #fff; color: #c0392b; border: 1px solid rgba(192,57,43,0.4); box-shadow: none; }
-    .go-btn.live:hover { background: #fff5f5; }
-
+    .go-btn.live { background: var(--surface); color: var(--red); border: 1px solid rgba(192,57,43,0.4); box-shadow: none; }
     .live-status { display: none; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 0.85rem; color: var(--green); font-weight: 500; }
     .live-status.on { display: flex; }
     .live-dot { width: 9px; height: 9px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.75);} }
 
-    .feed-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-    .online-count {
-      font-size: 0.78rem; color: var(--ink-soft); background: var(--cream-2);
-      padding: 4px 11px; border-radius: 100px; border: 1px solid var(--border);
-    }
-    .feed-list { display: flex; flex-direction: column; gap: 10px; }
-    .feed-empty { text-align: center; color: var(--ink-soft); font-size: 0.9rem; font-weight: 300; padding: 40px 10px; }
-    .feed-empty .em { font-family: var(--serif); font-style: italic; color: var(--gold); }
+    .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .star-btn { background: none; border: 1px solid var(--border); border-radius: 10px; padding: 7px 11px; cursor: pointer; font-size: 0.85rem; color: var(--ink-soft); transition: all 0.15s; }
+    .star-btn:hover { border-color: var(--gold); color: var(--gold); }
 
-    .user-row {
-      display: flex; align-items: center; gap: 13px; background: var(--cream);
-      border: 1px solid var(--border); border-radius: 13px; padding: 12px 15px;
-      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
-    }
+    .quick-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .qchip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 100px; border: 1px solid var(--border); background: var(--cream); font-size: 0.8rem; color: var(--ink-soft); cursor: pointer; transition: all 0.15s; }
+    .qchip:hover { border-color: var(--gold); color: var(--gold); }
+    .qchip .x { color: var(--ink-mute); font-weight: 700; }
+    .qchip .x:hover { color: var(--red); }
+    .muted { color: var(--ink-mute); font-size: 0.84rem; font-weight: 300; }
+
+    /* ── Feed / people rows ── */
+    .online-count { font-size: 0.76rem; color: var(--ink-soft); background: var(--cream-2); padding: 4px 11px; border-radius: 100px; border: 1px solid var(--border); }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .empty { text-align: center; color: var(--ink-soft); font-size: 0.9rem; font-weight: 300; padding: 36px 10px; }
+    .empty .em { font-family: var(--serif); font-style: italic; color: var(--gold); }
+
+    .user-row { display: flex; align-items: center; gap: 13px; background: var(--cream); border: 1px solid var(--border); border-radius: 13px; padding: 12px 15px; transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s; }
     .user-row.match { border-color: var(--gold); background: var(--gold-bg); box-shadow: 0 4px 16px rgba(200,131,42,0.12); }
-    .avatar {
-      width: 42px; height: 42px; border-radius: 50%; display: flex;
-      align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0;
-      background: #fff; border: 2px solid rgba(200,131,42,0.25); overflow: hidden;
-    }
+    .avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.02rem; font-weight: 600; flex-shrink: 0; background: var(--gold-bg); color: var(--gold); border: 2px solid rgba(200,131,42,0.25); overflow: hidden; position: relative; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar.sm { width: 34px; height: 34px; font-size: 0.85rem; }
+    .presence-ring { position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%; background: var(--ink-mute); border: 2px solid var(--surface); }
+    .presence-ring.online { background: var(--green); }
     .user-info { flex: 1; min-width: 0; }
-    .user-name {
-      font-weight: 600; font-size: 0.9rem; color: var(--ink);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      display: flex; align-items: center; gap: 7px;
-    }
-    .match-badge {
-      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-      color: #fff; background: var(--gold); padding: 2px 7px; border-radius: 100px;
-    }
-    .you-badge {
-      font-size: 0.62rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
-      color: var(--ink-soft); background: var(--cream-2); border: 1px solid var(--border);
-      padding: 2px 7px; border-radius: 100px;
-    }
+    .user-name { font-weight: 600; font-size: 0.9rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 7px; }
+    .badge-pill { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 100px; }
+    .badge-gold { color: #fff; background: var(--gold); }
+    .badge-soft { color: var(--ink-soft); background: var(--cream-2); border: 1px solid var(--border); }
+    .badge-green { color: #fff; background: var(--green); }
     .user-meta { font-size: 0.76rem; color: var(--ink-soft); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .user-topic {
-      display: inline-block; background: #fff; color: var(--gold); font-size: 0.72rem;
-      font-weight: 600; padding: 3px 9px; border-radius: 100px;
-      border: 1px solid rgba(200,131,42,0.3); flex-shrink: 0;
-    }
+    .user-topic { display: inline-block; background: var(--surface); color: var(--gold); font-size: 0.72rem; font-weight: 600; padding: 3px 9px; border-radius: 100px; border: 1px solid rgba(200,131,42,0.3); flex-shrink: 0; }
     .match .user-topic { background: var(--gold); color: #fff; border-color: var(--gold); }
-    .join-btn {
-      background: var(--gold); color: #fff; font-size: 0.78rem; font-weight: 500;
-      padding: 8px 16px; border-radius: 100px; border: none; cursor: pointer;
-      flex-shrink: 0; transition: background 0.2s, transform 0.15s;
-    }
-    .join-btn:hover { background: var(--gold-lt); transform: scale(1.04); }
-    .join-btn:disabled { background: var(--cream-2); color: var(--ink-soft); cursor: default; }
+    .row-actions { display: flex; gap: 7px; flex-shrink: 0; }
+    .btn-sm { font-size: 0.78rem; font-weight: 500; padding: 8px 15px; border-radius: 100px; border: none; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .btn-gold { background: var(--gold); color: #fff; }
+    .btn-gold:hover { background: var(--gold-lt); transform: scale(1.03); }
+    .btn-out { background: var(--surface); color: var(--ink-soft); border: 1px solid var(--border); }
+    .btn-out:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-danger { background: var(--surface); color: var(--red); border: 1px solid rgba(192,57,43,0.35); }
+    .btn-danger:hover { background: rgba(192,57,43,0.07); }
+    .btn-sm:disabled { background: var(--cream-2); color: var(--ink-mute); cursor: default; border: 1px solid var(--border); }
 
-    /* ───────── LOADER + TOAST ───────── */
-    #loader {
-      position: fixed; inset: 0; background: var(--cream);
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 14px; z-index: 200;
-    }
-    #loader .spark { font-size: 2rem; animation: pulse 1.5s infinite; }
-    #loader p { color: var(--ink-soft); font-size: 0.9rem; }
+    /* ── Search ── */
+    .search-bar { position: relative; margin-bottom: 18px; }
+    .search-bar input { padding-left: 40px; border-radius: 100px; }
+    .search-bar .si { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--ink-mute); font-size: 0.9rem; }
 
-    .toast {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120%);
-      background: var(--ink); color: var(--cream); padding: 13px 22px; border-radius: 100px;
-      font-size: 0.88rem; box-shadow: 0 8px 30px rgba(0,0,0,0.25); z-index: 150;
-      transition: transform 0.3s ease; max-width: 90vw; text-align: center;
+    /* ── Stats ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 14px; margin-bottom: 22px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-sm); }
+    .stat .num { font-family: var(--serif); font-size: 2.1rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .stat .lbl { font-size: 0.78rem; color: var(--ink-soft); margin-top: 8px; font-weight: 500; }
+    .stat .sub { font-size: 0.72rem; color: var(--ink-mute); margin-top: 2px; }
+
+    .sess-row { display: flex; align-items: center; gap: 13px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--cream); }
+    .sess-ic { width: 36px; height: 36px; border-radius: 9px; background: var(--gold-bg); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .sess-info { flex: 1; min-width: 0; }
+    .sess-ref { font-weight: 600; font-size: 0.88rem; }
+    .sess-time { font-size: 0.74rem; color: var(--ink-mute); }
+
+    /* ── Toggle ── */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border-2); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row .t-label { font-size: 0.9rem; font-weight: 500; }
+    .toggle-row .t-sub { font-size: 0.78rem; color: var(--ink-mute); }
+    .switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: var(--cream-2); border: 1px solid var(--border); border-radius: 100px; cursor: pointer; transition: 0.2s; }
+    .slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .switch input:checked + .slider { background: var(--gold); border-color: var(--gold); }
+    .switch input:checked + .slider::before { transform: translateX(20px); }
+
+    /* ── Mobile tabs ── */
+    .mobile-tabs { display: none; }
+    @media (max-width: 760px) {
+      .sidebar { display: none; }
+      .main { padding: 20px 16px 90px; }
+      .mobile-tabs {
+        display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 80;
+        background: var(--surface); border-top: 1px solid var(--border); padding: 8px 6px;
+        justify-content: space-around;
+      }
+      .mtab { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; color: var(--ink-mute); font-size: 0.62rem; font-weight: 600; padding: 4px 8px; position: relative; flex: 1; font-family: var(--sans); }
+      .mtab .ic { width: 22px; height: 22px; }
+      .mtab.active { color: var(--gold); }
+      .mtab .nav-badge { position: absolute; top: 0; right: 22%; margin: 0; }
     }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(160%); background: var(--ink); color: var(--cream); padding: 13px 22px; border-radius: 100px; font-size: 0.88rem; box-shadow: 0 8px 30px rgba(0,0,0,0.25); z-index: 200; transition: transform 0.3s ease; max-width: 90vw; text-align: center; }
     .toast.show { transform: translateX(-50%) translateY(0); }
+    @media (max-width: 760px) { .toast { bottom: 84px; } }
+
+    .modal-bg { position: fixed; inset: 0; background: rgba(20,16,12,0.5); display: none; align-items: center; justify-content: center; z-index: 250; padding: 20px; }
+    .modal-bg.show { display: flex; }
+    .modal { background: var(--surface); border-radius: 20px; padding: 30px; max-width: 420px; width: 100%; box-shadow: var(--shadow); text-align: center; }
+    .modal .avatar { width: 64px; height: 64px; font-size: 1.5rem; margin: 0 auto 16px; }
+    .modal h3 { font-family: var(--serif); font-size: 1.3rem; margin-bottom: 6px; }
+    .modal p { color: var(--ink-soft); font-size: 0.9rem; margin-bottom: 8px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+    .modal-actions button { flex: 1; padding: 12px; border-radius: 100px; font-size: 0.9rem; font-weight: 500; cursor: pointer; border: none; }
   </style>
 </head>
 <body>
 
-  <div id="loader">
-    <div class="spark">🕯️</div>
-    <p>Loading Pitom…</p>
-  </div>
+  <div id="loader"><div class="spark">🕯️</div><p>Loading Pitom…</p></div>
 
   <!-- ═════════ ONBOARDING ═════════ -->
-  <div id="onboard" style="display:none;">
+  <div id="onboard">
     <a class="brand" href="index.html">Pitom <span>פִּתְאוֹם</span></a>
     <div class="card">
-
-      <!-- Sign in -->
       <div id="step-signin">
         <h1>Welcome to Pitom</h1>
         <p>Sign in with Google to start learning.</p>
@@ -277,102 +313,186 @@
           Continue with Google
         </button>
       </div>
-
-      <!-- Profile -->
       <div id="step-profile">
-        <div class="welcome">
-          <h2>Hi, <span id="user-first-name">there</span> 👋</h2>
-          <p>Tell us a bit about how you learn.</p>
-        </div>
-        <div class="field">
-          <label>Your City</label>
-          <input type="text" id="city" placeholder="e.g. Jerusalem, New York, London" />
-        </div>
-        <div class="field">
-          <label>Learning Level</label>
-          <div class="chip-group" id="level-chips">
-            <div class="chip" data-value="beginner">Beginner</div>
-            <div class="chip" data-value="intermediate">Intermediate</div>
-            <div class="chip" data-value="advanced">Advanced</div>
-          </div>
-        </div>
-        <div class="field">
-          <label>Denomination</label>
-          <div class="chip-group" id="denom-chips">
-            <div class="chip" data-value="orthodox">Orthodox</div>
-            <div class="chip" data-value="conservative">Conservative</div>
-            <div class="chip" data-value="reform">Reform</div>
-            <div class="chip" data-value="traditional">Traditional</div>
-            <div class="chip" data-value="other">Other</div>
-          </div>
-        </div>
-        <div class="field">
-          <label>Learning Language</label>
-          <div class="chip-group" id="lang-chips">
-            <div class="chip" data-value="hebrew">Hebrew</div>
-            <div class="chip" data-value="english">English</div>
-            <div class="chip" data-value="both">Both</div>
-          </div>
-        </div>
+        <div class="welcome"><h2>Hi, <span id="user-first-name">there</span> 👋</h2><p>Tell us a bit about how you learn.</p></div>
+        <div class="field"><label>Your City</label><input type="text" id="city" placeholder="e.g. Jerusalem, New York, London" /></div>
+        <div class="field"><label>Learning Level</label><div class="chip-group" id="level-chips">
+          <div class="chip" data-value="beginner">Beginner</div><div class="chip" data-value="intermediate">Intermediate</div><div class="chip" data-value="advanced">Advanced</div></div></div>
+        <div class="field"><label>Denomination</label><div class="chip-group" id="denom-chips">
+          <div class="chip" data-value="orthodox">Orthodox</div><div class="chip" data-value="conservative">Conservative</div><div class="chip" data-value="reform">Reform</div><div class="chip" data-value="traditional">Traditional</div><div class="chip" data-value="other">Other</div></div></div>
+        <div class="field"><label>Learning Language</label><div class="chip-group" id="lang-chips">
+          <div class="chip" data-value="hebrew">Hebrew</div><div class="chip" data-value="english">English</div><div class="chip" data-value="both">Both</div></div></div>
         <button class="submit-btn" id="save-btn">Save & start learning →</button>
         <p class="error-msg" id="error-msg">Please fill in all fields before continuing.</p>
       </div>
-
     </div>
   </div>
 
-  <!-- ═════════ LIVE APP ═════════ -->
-  <div id="app">
-    <nav>
-      <a class="logo" href="index.html">Pitom <span>פִּתְאוֹם</span></a>
-      <div class="nav-right">
-        <span class="nav-user">Hi, <strong id="nav-name">there</strong></span>
-        <button class="signout" id="signout-btn">Sign out</button>
-      </div>
-    </nav>
-
-    <div class="wrap">
-      <!-- What are you learning -->
-      <div class="panel">
-        <div class="panel-title">What are you learning?</div>
-        <div class="panel-sub">Pick your text, go live, and we'll match you with others learning the same thing.</div>
-
-        <div class="live-status" id="live-status">
-          <span class="live-dot"></span> You're live — learning <strong id="live-ref" style="margin-left:4px;"></strong>
-        </div>
-
-        <div class="field">
-          <label>Type of text</label>
-          <div class="select-wrap"><select id="category"></select></div>
-        </div>
-        <div class="field">
-          <label id="book-label">Text</label>
-          <div class="select-wrap"><select id="book"></select></div>
-        </div>
-        <div class="field" id="location-field">
-          <label id="location-label">Location</label>
-          <input type="text" id="location" placeholder="" autocomplete="off" />
-        </div>
-
-        <div class="ref-preview">
-          Right now I'm learning:
-          <strong id="ref-preview">—</strong>
-        </div>
-
-        <button class="go-btn" id="go-btn">Go live →</button>
-      </div>
-
-      <!-- Who's online -->
-      <div class="panel">
-        <div class="feed-head">
-          <div class="panel-title">Learning right now</div>
-          <div class="online-count" id="online-count">0 online</div>
-        </div>
-        <div class="feed-list" id="feed-list">
-          <div class="feed-empty">
-            <p>No one's live yet.<br><span class="em">Be the first — go live and start the fire.</span> 🕯️</p>
+  <!-- ═════════ APP SHELL ═════════ -->
+  <div id="shell">
+    <div class="layout">
+      <aside class="sidebar">
+        <a class="logo" href="index.html">Pitom <span>פִּתְאוֹם</span></a>
+        <button class="nav-item active" data-view="learn">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5V6a2 2 0 012-2h13v15H6a2 2 0 00-2 2z"/><path d="M19 4v15"/></svg>
+          Learn Live</button>
+        <button class="nav-item" data-view="friends">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0111 0"/><path d="M16 5.2a3.2 3.2 0 010 5.6M17.5 19a5.5 5.5 0 00-2-4.3"/></svg>
+          Friends <span class="nav-badge" id="badge-friends">0</span></button>
+        <button class="nav-item" data-view="discover">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.5-3.5"/></svg>
+          Discover</button>
+        <button class="nav-item" data-view="activity">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17l5-5 4 4 8-8"/><path d="M21 8v4h-4"/></svg>
+          Activity</button>
+        <button class="nav-item" data-view="settings">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L14 2h-4l-.5 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 005 12a7 7 0 00.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2L10 22h4l.5-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0019 12z"/></svg>
+          Settings</button>
+        <div class="sidebar-foot">
+          <div class="mini-user">
+            <div class="avatar sm" id="mini-avatar">?</div>
+            <div class="mini-user-info">
+              <div class="mini-user-name" id="mini-name">—</div>
+              <div class="mini-user-sub" id="mini-sub">—</div>
+            </div>
           </div>
+          <button class="nav-item" id="sidebar-signout" style="margin-top:4px;">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 12H4M9 7l-5 5 5 5"/><path d="M14 4h4a2 2 0 012 2v12a2 2 0 01-2 2h-4"/></svg>
+            Sign out</button>
         </div>
+      </aside>
+
+      <main class="main">
+
+        <!-- ───── LEARN ───── -->
+        <section class="view active" id="view-learn">
+          <div class="view-head"><h1>Learn Live</h1><p>Pick what you're learning, go live, and match instantly with others on the same text.</p></div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">What are you learning?</div>
+              <div class="panel-sub">You can switch any time — even while you're live.</div>
+              <div class="live-status" id="live-status"><span class="live-dot"></span> You're live — learning <strong id="live-ref" style="margin-left:4px;"></strong></div>
+              <div class="field"><label>Type of text</label><div class="select-wrap"><select id="category"></select></div></div>
+              <div class="field"><label id="book-label">Text</label><div class="select-wrap"><select id="book"></select></div></div>
+              <div class="field" id="location-field"><label id="location-label">Location</label><input type="text" id="location" placeholder="" autocomplete="off" /></div>
+              <div class="ref-preview row-between">
+                <div>Right now I'm learning:<strong id="ref-preview">—</strong></div>
+                <button class="star-btn" id="bookmark-btn" title="Save this text">☆ Save</button>
+              </div>
+              <button class="go-btn" id="go-btn">Go live →</button>
+            </div>
+            <div>
+              <div class="panel" style="margin-bottom:22px;">
+                <div class="row-between" style="margin-bottom:14px;"><div class="panel-title" style="margin:0;">Learning right now</div><div class="online-count" id="online-count">0 online</div></div>
+                <div class="list" id="feed-list"><div class="empty"><p>No one's live yet.<br><span class="em">Be the first — go live and start the fire.</span> 🕯️</p></div></div>
+              </div>
+              <div class="panel">
+                <div class="panel-title">Saved texts</div>
+                <div class="panel-sub">Quick-jump to texts you bookmarked.</div>
+                <div class="quick-chips" id="bookmark-list"><span class="muted">Nothing saved yet — hit “Save” on a text.</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ───── FRIENDS ───── -->
+        <section class="view" id="view-friends">
+          <div class="view-head"><h1>Friends</h1><p>See who's online, what they're learning, and jump in together.</p></div>
+          <div class="panel" id="requests-panel" style="display:none; margin-bottom:22px;">
+            <div class="panel-title">Friend requests</div>
+            <div class="panel-sub">People who want to learn with you.</div>
+            <div class="list" id="requests-list"></div>
+          </div>
+          <div class="panel">
+            <div class="row-between" style="margin-bottom:16px;"><div class="panel-title" style="margin:0;">Your friends</div><div class="online-count" id="friends-online-count">0 online</div></div>
+            <div class="list" id="friends-list"><div class="empty"><p>No friends yet.<br><span class="em">Head to Discover and add some chavrutas.</span></p></div></div>
+          </div>
+          <div class="panel" id="sent-panel" style="display:none; margin-top:22px;">
+            <div class="panel-title">Pending sent requests</div>
+            <div class="list" id="sent-list" style="margin-top:14px;"></div>
+          </div>
+        </section>
+
+        <!-- ───── DISCOVER ───── -->
+        <section class="view" id="view-discover">
+          <div class="view-head"><h1>Discover people</h1><p>Find chavrutas by name, city, or what they learn — and send a friend request.</p></div>
+          <div class="panel">
+            <div class="search-bar"><span class="si">🔍</span><input type="text" id="discover-search" placeholder="Search by name or city…" autocomplete="off" /></div>
+            <div class="list" id="discover-list"><div class="empty"><p>Loading people…</p></div></div>
+          </div>
+        </section>
+
+        <!-- ───── ACTIVITY ───── -->
+        <section class="view" id="view-activity">
+          <div class="view-head"><h1>Your activity</h1><p>Track your learning — streaks, sessions, and history.</p></div>
+          <div class="stat-grid">
+            <div class="stat"><div class="num" id="stat-streak">0</div><div class="lbl">Day streak 🔥</div><div class="sub" id="stat-streak-sub">Start today</div></div>
+            <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Total sessions</div><div class="sub">All time</div></div>
+            <div class="stat"><div class="num" id="stat-week">0</div><div class="lbl">This week</div><div class="sub">Last 7 days</div></div>
+            <div class="stat"><div class="num" id="stat-days">0</div><div class="lbl">Days learned</div><div class="sub">Unique days</div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Recent sessions</div>
+            <div class="panel-sub">Every text you've gone live on.</div>
+            <div class="list" id="sessions-list"><div class="empty"><p>No sessions yet.<br><span class="em">Go live on a text to start your streak.</span></p></div></div>
+          </div>
+        </section>
+
+        <!-- ───── SETTINGS ───── -->
+        <section class="view" id="view-settings">
+          <div class="view-head"><h1>Settings</h1><p>Manage your profile and preferences.</p></div>
+          <div class="panel" style="margin-bottom:22px;">
+            <div class="panel-title">Your profile</div>
+            <div class="panel-sub">This is what other learners see.</div>
+            <div class="field"><label>Display name</label><input type="text" id="set-name" /></div>
+            <div class="field"><label>City</label><input type="text" id="set-city" /></div>
+            <div class="field"><label>About you</label><textarea id="set-bio" rows="3" placeholder="A line about what you love learning, who you are…"></textarea></div>
+            <div class="field"><label>Learning Level</label><div class="chip-group" id="set-level-chips">
+              <div class="chip" data-value="beginner">Beginner</div><div class="chip" data-value="intermediate">Intermediate</div><div class="chip" data-value="advanced">Advanced</div></div></div>
+            <div class="field"><label>Denomination</label><div class="chip-group" id="set-denom-chips">
+              <div class="chip" data-value="orthodox">Orthodox</div><div class="chip" data-value="conservative">Conservative</div><div class="chip" data-value="reform">Reform</div><div class="chip" data-value="traditional">Traditional</div><div class="chip" data-value="other">Other</div></div></div>
+            <div class="field"><label>Learning Language</label><div class="chip-group" id="set-lang-chips">
+              <div class="chip" data-value="hebrew">Hebrew</div><div class="chip" data-value="english">English</div><div class="chip" data-value="both">Both</div></div></div>
+            <button class="submit-btn" id="save-settings-btn" style="margin-top:18px;">Save changes</button>
+            <p class="error-msg" id="settings-saved" style="color:var(--green);">Saved! ✓</p>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Preferences</div>
+            <div class="panel-sub" style="margin-bottom:6px;">Make Pitom yours.</div>
+            <div class="toggle-row"><div><div class="t-label">Dark mode</div><div class="t-sub">Easier on the eyes for late-night learning.</div></div>
+              <label class="switch"><input type="checkbox" id="toggle-dark"><span class="slider"></span></label></div>
+            <div class="toggle-row"><div><div class="t-label">Appear in “Learning right now”</div><div class="t-sub">Turn off to go live privately (off = hidden from the public feed).</div></div>
+              <label class="switch"><input type="checkbox" id="toggle-visible" checked><span class="slider"></span></label></div>
+          </div>
+          <div class="panel" style="margin-top:22px;">
+            <div class="row-between"><div><div class="t-label">Sign out</div><div class="t-sub">You'll go back to the homepage.</div></div>
+              <button class="btn-sm btn-danger" id="settings-signout">Sign out</button></div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Mobile tabs -->
+    <nav class="mobile-tabs">
+      <button class="mtab active" data-view="learn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5V6a2 2 0 012-2h13v15H6a2 2 0 00-2 2z"/><path d="M19 4v15"/></svg>Learn</button>
+      <button class="mtab" data-view="friends"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0111 0"/></svg>Friends<span class="nav-badge" id="badge-friends-m">0</span></button>
+      <button class="mtab" data-view="discover"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.5-3.5"/></svg>Discover</button>
+      <button class="mtab" data-view="activity"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17l5-5 4 4 8-8"/></svg>Activity</button>
+      <button class="mtab" data-view="settings"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 000-2l1.7-1.3-1.9-3.3-2 .8a7.3 7.3 0 00-1.7-1l-.3-2.1H10.5l-.3 2.1a7.3 7.3 0 00-1.7 1l-2-.8L4.6 9.7 6.3 11a7.6 7.6 0 000 2l-1.7 1.3 1.9 3.3 2-.8a7.3 7.3 0 001.7 1l.3 2.1h3.8l.3-2.1a7.3 7.3 0 001.7-1l2 .8 1.9-3.3z"/></svg>Settings</button>
+    </nav>
+  </div>
+
+  <!-- Join modal -->
+  <div class="modal-bg" id="join-modal">
+    <div class="modal">
+      <div class="avatar" id="jm-avatar">?</div>
+      <h3 id="jm-name">Learner</h3>
+      <p id="jm-learning">—</p>
+      <p class="muted" id="jm-note">Live video chavruta is coming with the Pitom app. For now, add them as a friend so you're ready to learn together the moment it launches.</p>
+      <div class="modal-actions">
+        <button class="btn-out" id="jm-close" style="border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);">Close</button>
+        <button class="btn-gold" id="jm-add" style="background:var(--gold);color:#fff;">Add friend</button>
       </div>
     </div>
   </div>
@@ -383,8 +503,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import {
-      getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc,
-      collection, onSnapshot, serverTimestamp
+      getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, addDoc,
+      collection, onSnapshot, serverTimestamp, query, where
     } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -396,7 +516,6 @@
       appId: "1:143903138582:web:b3446f79205be35ce8e637",
       measurementId: "G-X9C34T1EEV"
     };
-
     const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db   = getFirestore(app);
@@ -405,432 +524,421 @@
 
     /* ═══════════ TEXT LIBRARY ═══════════ */
     const LIBRARY = {
-      tanach: {
-        label: "Tanach (Torah, Nevi'im, Ketuvim)",
-        bookLabel: "Book", locationLabel: "Chapter : Verse", placeholder: "e.g. 12:3",
-        books: [
-          "— Torah —",
-          "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
-          "— Nevi'im (Prophets) —",
-          "Joshua", "Judges", "I Samuel", "II Samuel", "I Kings", "II Kings",
-          "Isaiah", "Jeremiah", "Ezekiel",
-          "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum",
-          "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
-          "— Ketuvim (Writings) —",
-          "Psalms", "Proverbs", "Job", "Song of Songs", "Ruth", "Lamentations",
-          "Ecclesiastes", "Esther", "Daniel", "Ezra", "Nehemiah",
-          "I Chronicles", "II Chronicles"
-        ]
-      },
-      parsha: {
-        label: "Parsha (Weekly Torah portion)",
-        bookLabel: "Parsha", locationLabel: "Aliyah / verse (optional)",
-        placeholder: "e.g. 2nd aliyah (optional)", locationOptional: true,
-        books: [
-          "Bereshit", "Noach", "Lech-Lecha", "Vayera", "Chayei Sara", "Toldot",
-          "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi",
-          "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah",
-          "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei",
-          "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot",
-          "Kedoshim", "Emor", "Behar", "Bechukotai",
-          "Bamidbar", "Nasso", "Behaalotcha", "Shlach", "Korach", "Chukat",
-          "Balak", "Pinchas", "Matot", "Masei",
-          "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei",
-          "Ki Tavo", "Nitzavim", "Vayeilech", "Haazinu", "Vezot Haberachah"
-        ]
-      },
-      gemara: {
-        label: "Gemara (Talmud Bavli)",
-        bookLabel: "Masechet", locationLabel: "Daf + Amud", placeholder: "e.g. 23b",
-        books: [
-          "— Seder Zeraim —", "Berakhot",
-          "— Seder Moed —",
-          "Shabbat", "Eruvin", "Pesachim", "Rosh Hashanah", "Yoma", "Sukkah",
-          "Beitzah", "Taanit", "Megillah", "Moed Katan", "Chagigah",
-          "— Seder Nashim —",
-          "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
-          "— Seder Nezikin —",
-          "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
-          "Shevuot", "Avodah Zarah", "Horayot",
-          "— Seder Kodashim —",
-          "Zevachim", "Menachot", "Chullin", "Bekhorot", "Arakhin", "Temurah",
-          "Keritot", "Meilah", "Tamid",
-          "— Seder Tahorot —", "Niddah"
-        ]
-      },
-      mishna: {
-        label: "Mishna",
-        bookLabel: "Masechet", locationLabel: "Chapter : Mishna", placeholder: "e.g. 1:1",
-        books: [
-          "— Seder Zeraim —",
-          "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot",
-          "Maasrot", "Maaser Sheni", "Challah", "Orlah", "Bikkurim",
-          "— Seder Moed —",
-          "Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma", "Sukkah",
-          "Beitzah", "Rosh Hashanah", "Taanit", "Megillah", "Moed Katan", "Chagigah",
-          "— Seder Nashim —",
-          "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
-          "— Seder Nezikin —",
-          "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
-          "Shevuot", "Eduyot", "Avodah Zarah", "Avot", "Horayot",
-          "— Seder Kodashim —",
-          "Zevachim", "Menachot", "Chullin", "Bekhorot", "Arakhin", "Temurah",
-          "Keritot", "Meilah", "Tamid", "Middot", "Kinnim",
-          "— Seder Tahorot —",
-          "Kelim", "Oholot", "Negaim", "Parah", "Tahorot", "Mikvaot", "Niddah",
-          "Makhshirin", "Zavim", "Tevul Yom", "Yadayim", "Oktzin"
-        ]
-      },
-      rambam: {
-        label: "Rambam (Mishneh Torah)",
-        bookLabel: "Book", locationLabel: "Halachot + chapter (optional)",
-        placeholder: "e.g. Hilchot Teshuvah 3:4", locationOptional: true,
-        books: [
-          "Sefer HaMadda", "Sefer Ahavah", "Sefer Zemanim", "Sefer Nashim",
-          "Sefer Kedushah", "Sefer Haflaah", "Sefer Zeraim", "Sefer Avodah",
-          "Sefer Korbanot", "Sefer Taharah", "Sefer Nezikin", "Sefer Kinyan",
-          "Sefer Mishpatim", "Sefer Shofetim"
-        ]
-      }
+      tanach: { label: "Tanach (Torah, Nevi'im, Ketuvim)", bookLabel: "Book", locationLabel: "Chapter : Verse", placeholder: "e.g. 12:3",
+        books: ["— Torah —","Genesis","Exodus","Leviticus","Numbers","Deuteronomy","— Nevi'im (Prophets) —","Joshua","Judges","I Samuel","II Samuel","I Kings","II Kings","Isaiah","Jeremiah","Ezekiel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","— Ketuvim (Writings) —","Psalms","Proverbs","Job","Song of Songs","Ruth","Lamentations","Ecclesiastes","Esther","Daniel","Ezra","Nehemiah","I Chronicles","II Chronicles"] },
+      parsha: { label: "Parsha (Weekly Torah portion)", bookLabel: "Parsha", locationLabel: "Aliyah / verse (optional)", placeholder: "e.g. 2nd aliyah (optional)",
+        books: ["Bereshit","Noach","Lech-Lecha","Vayera","Chayei Sara","Toldot","Vayetzei","Vayishlach","Vayeshev","Miketz","Vayigash","Vayechi","Shemot","Vaera","Bo","Beshalach","Yitro","Mishpatim","Terumah","Tetzaveh","Ki Tisa","Vayakhel","Pekudei","Vayikra","Tzav","Shmini","Tazria","Metzora","Achrei Mot","Kedoshim","Emor","Behar","Bechukotai","Bamidbar","Nasso","Behaalotcha","Shlach","Korach","Chukat","Balak","Pinchas","Matot","Masei","Devarim","Vaetchanan","Eikev","Re'eh","Shoftim","Ki Teitzei","Ki Tavo","Nitzavim","Vayeilech","Haazinu","Vezot Haberachah"] },
+      gemara: { label: "Gemara (Talmud Bavli)", bookLabel: "Masechet", locationLabel: "Daf + Amud", placeholder: "e.g. 23b",
+        books: ["— Seder Zeraim —","Berakhot","— Seder Moed —","Shabbat","Eruvin","Pesachim","Rosh Hashanah","Yoma","Sukkah","Beitzah","Taanit","Megillah","Moed Katan","Chagigah","— Seder Nashim —","Yevamot","Ketubot","Nedarim","Nazir","Sotah","Gittin","Kiddushin","— Seder Nezikin —","Bava Kamma","Bava Metzia","Bava Batra","Sanhedrin","Makkot","Shevuot","Avodah Zarah","Horayot","— Seder Kodashim —","Zevachim","Menachot","Chullin","Bekhorot","Arakhin","Temurah","Keritot","Meilah","Tamid","— Seder Tahorot —","Niddah"] },
+      mishna: { label: "Mishna", bookLabel: "Masechet", locationLabel: "Chapter : Mishna", placeholder: "e.g. 1:1",
+        books: ["— Seder Zeraim —","Berakhot","Peah","Demai","Kilayim","Sheviit","Terumot","Maasrot","Maaser Sheni","Challah","Orlah","Bikkurim","— Seder Moed —","Shabbat","Eruvin","Pesachim","Shekalim","Yoma","Sukkah","Beitzah","Rosh Hashanah","Taanit","Megillah","Moed Katan","Chagigah","— Seder Nashim —","Yevamot","Ketubot","Nedarim","Nazir","Sotah","Gittin","Kiddushin","— Seder Nezikin —","Bava Kamma","Bava Metzia","Bava Batra","Sanhedrin","Makkot","Shevuot","Eduyot","Avodah Zarah","Avot","Horayot","— Seder Kodashim —","Zevachim","Menachot","Chullin","Bekhorot","Arakhin","Temurah","Keritot","Meilah","Tamid","Middot","Kinnim","— Seder Tahorot —","Kelim","Oholot","Negaim","Parah","Tahorot","Mikvaot","Niddah","Makhshirin","Zavim","Tevul Yom","Yadayim","Oktzin"] },
+      rambam: { label: "Rambam (Mishneh Torah)", bookLabel: "Book", locationLabel: "Halachot + chapter (optional)", placeholder: "e.g. Hilchot Teshuvah 3:4",
+        books: ["Sefer HaMadda","Sefer Ahavah","Sefer Zemanim","Sefer Nashim","Sefer Kedushah","Sefer Haflaah","Sefer Zeraim","Sefer Avodah","Sefer Korbanot","Sefer Taharah","Sefer Nezikin","Sefer Kinyan","Sefer Mishpatim","Sefer Shofetim"] }
     };
     const isHeader = (s) => s.startsWith("—");
+    const catEmoji = { tanach:"📖", parsha:"📜", gemara:"📚", mishna:"🕮", rambam:"✍️" };
+
+    /* ═══════════ State ═══════════ */
+    let currentUser = null, profile = null;
+    let isLive = false, heartbeat = null, currentSessionId = null;
+    let presenceList = [], incomingReqs = [], outgoingReqs = [], friendsList = [], allUsers = [], sessionsList = [], bookmarks = [];
+    let listenersStarted = false;
+    const FRESH_MS = 5 * 60 * 1000;
 
     /* ═══════════ DOM ═══════════ */
-    const loader      = document.getElementById('loader');
-    const onboard     = document.getElementById('onboard');
-    const appEl       = document.getElementById('app');
-    const stepSignin  = document.getElementById('step-signin');
-    const stepProfile = document.getElementById('step-profile');
-    const signinBtn   = document.getElementById('signin-btn');
-    const saveBtn     = document.getElementById('save-btn');
-    const errorMsg    = document.getElementById('error-msg');
-
-    const navName     = document.getElementById('nav-name');
-    const categorySel = document.getElementById('category');
-    const bookSel     = document.getElementById('book');
-    const bookLabel   = document.getElementById('book-label');
-    const locationLbl = document.getElementById('location-label');
-    const locationInp = document.getElementById('location');
-    const refPreview  = document.getElementById('ref-preview');
-    const goBtn       = document.getElementById('go-btn');
-    const liveStatus  = document.getElementById('live-status');
-    const liveRef     = document.getElementById('live-ref');
-    const feedList    = document.getElementById('feed-list');
-    const onlineCount = document.getElementById('online-count');
-    const signoutBtn  = document.getElementById('signout-btn');
-    const toastEl     = document.getElementById('toast');
-
-    let currentUser = null;
-    let profile = null;
-    let isLive = false;
-    let heartbeat = null;
-    let feedStarted = false;
+    const $ = (id) => document.getElementById(id);
+    const loader=$('loader'), onboard=$('onboard'), shell=$('shell');
+    const stepSignin=$('step-signin'), stepProfile=$('step-profile'), signinBtn=$('signin-btn'), saveBtn=$('save-btn'), errorMsg=$('error-msg');
+    const categorySel=$('category'), bookSel=$('book'), bookLabel=$('book-label'), locationLbl=$('location-label'), locationInp=$('location');
+    const refPreview=$('ref-preview'), goBtn=$('go-btn'), liveStatus=$('live-status'), liveRef=$('live-ref');
+    const feedList=$('feed-list'), onlineCount=$('online-count'), toastEl=$('toast'), bookmarkBtn=$('bookmark-btn'), bookmarkList=$('bookmark-list');
 
     /* ═══════════ Toast ═══════════ */
-    let toastTimer = null;
-    function toast(msg) {
-      toastEl.textContent = msg;
-      toastEl.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3000);
-    }
+    let toastTimer=null;
+    function toast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>toastEl.classList.remove('show'),3000); }
 
-    /* ═══════════ Profile chips ═══════════ */
-    function setupChips(groupId) {
-      const chips = document.querySelectorAll(`#${groupId} .chip`);
-      chips.forEach(chip => chip.addEventListener('click', () => {
-        chips.forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-      }));
+    /* ═══════════ Helpers ═══════════ */
+    const cap=(s)=> s? s.charAt(0).toUpperCase()+s.slice(1):'';
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    const pairId=(a,b)=>[a,b].sort().join('_');
+    function avatarHtml(name, photo, cls='', online=null){
+      const initial=(name||'?').trim().charAt(0).toUpperCase();
+      const ring = online===null ? '' : `<span class="presence-ring ${online?'online':''}"></span>`;
+      const inner = photo ? `<img src="${escapeHtml(photo)}" alt="" referrerpolicy="no-referrer">` : escapeHtml(initial);
+      return `<div class="avatar ${cls}">${inner}${ring}</div>`;
     }
+    function presenceFresh(p){ return p && p.online && p.updatedAt && (Date.now()-p.updatedAt.toMillis())<FRESH_MS; }
+    function presenceFor(uid){ const p=presenceList.find(x=>x.uid===uid); return presenceFresh(p)?p:null; }
+
+    /* ═══════════ Chips ═══════════ */
+    function setupChips(groupId, onPick){
+      const chips=document.querySelectorAll(`#${groupId} .chip`);
+      chips.forEach(chip=>chip.addEventListener('click',()=>{ chips.forEach(c=>c.classList.remove('selected')); chip.classList.add('selected'); if(onPick)onPick(chip.dataset.value); }));
+    }
+    function getSelected(groupId){ const s=document.querySelector(`#${groupId} .chip.selected`); return s?s.dataset.value:null; }
+    function setSelected(groupId, val){ document.querySelectorAll(`#${groupId} .chip`).forEach(c=>c.classList.toggle('selected', c.dataset.value===val)); }
     setupChips('level-chips'); setupChips('denom-chips'); setupChips('lang-chips');
-    function getSelected(groupId) {
-      const sel = document.querySelector(`#${groupId} .chip.selected`);
-      return sel ? sel.dataset.value : null;
-    }
+    setupChips('set-level-chips'); setupChips('set-denom-chips'); setupChips('set-lang-chips');
 
     /* ═══════════ Text picker ═══════════ */
-    Object.entries(LIBRARY).forEach(([key, cat]) => {
-      const opt = document.createElement('option');
-      opt.value = key; opt.textContent = cat.label;
-      categorySel.appendChild(opt);
-    });
-    function populateBooks() {
-      const cat = LIBRARY[categorySel.value];
-      bookLabel.textContent = cat.bookLabel;
-      bookSel.innerHTML = '';
-      cat.books.forEach(b => {
-        const opt = document.createElement('option');
-        opt.value = isHeader(b) ? '' : b;
-        opt.textContent = b;
-        if (isHeader(b)) { opt.disabled = true; opt.style.color = '#b0a090'; }
-        bookSel.appendChild(opt);
-      });
-      const firstReal = cat.books.find(b => !isHeader(b));
-      bookSel.value = firstReal || '';
-      locationLbl.textContent = cat.locationLabel;
-      locationInp.value = '';
-      locationInp.placeholder = cat.placeholder;
-      updatePreview();
+    Object.entries(LIBRARY).forEach(([key,cat])=>{ const o=document.createElement('option'); o.value=key; o.textContent=cat.label; categorySel.appendChild(o); });
+    function populateBooks(){
+      const cat=LIBRARY[categorySel.value];
+      bookLabel.textContent=cat.bookLabel; bookSel.innerHTML='';
+      cat.books.forEach(b=>{ const o=document.createElement('option'); o.value=isHeader(b)?'':b; o.textContent=b; if(isHeader(b)){o.disabled=true;o.style.color='#b0a090';} bookSel.appendChild(o); });
+      bookSel.value=cat.books.find(b=>!isHeader(b))||'';
+      locationLbl.textContent=cat.locationLabel; locationInp.value=''; locationInp.placeholder=cat.placeholder; updatePreview();
     }
-    function buildRef() {
-      const book = bookSel.value;
-      const loc = locationInp.value.trim();
-      if (!book) return '';
-      return loc ? `${book} ${loc}` : book;
-    }
-    function updatePreview() {
-      const ref = buildRef();
-      refPreview.textContent = ref || '—';
-      if (!isLive) goBtn.disabled = !bookSel.value;
-    }
-    categorySel.addEventListener('change', populateBooks);
-    bookSel.addEventListener('change', updatePreview);
-    locationInp.addEventListener('input', updatePreview);
+    function buildRef(){ const b=bookSel.value, l=locationInp.value.trim(); if(!b)return ''; return l?`${b} ${l}`:b; }
+    function updatePreview(){ const r=buildRef(); refPreview.textContent=r||'—'; if(!isLive)goBtn.disabled=!bookSel.value; }
+    categorySel.addEventListener('change',populateBooks);
+    bookSel.addEventListener('change',updatePreview);
+    locationInp.addEventListener('input',updatePreview);
     populateBooks();
 
-    /* ═══════════ Presence ═══════════ */
-    async function goLive() {
-      const ref = buildRef();
-      if (!ref) { toast('Pick a text first.'); return; }
-      const cat = LIBRARY[categorySel.value];
-      try {
-        await setDoc(doc(db, 'presence', currentUser.uid), {
-          uid: currentUser.uid,
-          name: profile.name || currentUser.displayName || 'Anonymous',
-          photoURL: currentUser.photoURL || '',
-          city: profile.city || '',
-          level: profile.level || '',
-          language: profile.language || '',
-          category: categorySel.value,
-          categoryLabel: cat.label,
-          book: bookSel.value,
-          location: locationInp.value.trim(),
-          ref,
-          online: true,
-          updatedAt: serverTimestamp()
-        });
-        setLiveState(true, ref);
-        startHeartbeat();
-        toast("You're live! 🕯️");
-      } catch (e) { console.error(e); toast('Could not go live. Try again.'); }
-    }
-    async function stopLive() {
-      stopHeartbeat();
-      try { await deleteDoc(doc(db, 'presence', currentUser.uid)); } catch (e) { console.error(e); }
-      setLiveState(false);
-      toast('You went offline.');
-    }
-    function setLiveState(on, ref) {
-      isLive = on;
-      if (on) {
-        liveStatus.classList.add('on');
-        liveRef.textContent = ref;
-        goBtn.textContent = 'Stop — go offline';
-        goBtn.classList.add('live');
-        goBtn.disabled = false;
-        categorySel.disabled = bookSel.disabled = locationInp.disabled = true;
-      } else {
-        liveStatus.classList.remove('on');
-        goBtn.textContent = 'Go live →';
-        goBtn.classList.remove('live');
-        categorySel.disabled = bookSel.disabled = locationInp.disabled = false;
-        updatePreview();
-      }
-    }
-    function startHeartbeat() {
-      stopHeartbeat();
-      heartbeat = setInterval(() => {
-        updateDoc(doc(db, 'presence', currentUser.uid), { updatedAt: serverTimestamp() })
-          .catch(e => console.error(e));
-      }, 60000);
-    }
-    function stopHeartbeat() { if (heartbeat) { clearInterval(heartbeat); heartbeat = null; } }
-    goBtn.addEventListener('click', () => { isLive ? stopLive() : goLive(); });
-    window.addEventListener('pagehide', () => {
-      if (isLive && currentUser) { try { deleteDoc(doc(db, 'presence', currentUser.uid)); } catch (e) {} }
+    /* ═══════════ Bookmarks (local) ═══════════ */
+    function loadBookmarks(){ try{ bookmarks=JSON.parse(localStorage.getItem('pitom_bookmarks_'+(currentUser?.uid||''))||'[]'); }catch(e){ bookmarks=[]; } renderBookmarks(); }
+    function saveBookmarks(){ localStorage.setItem('pitom_bookmarks_'+currentUser.uid, JSON.stringify(bookmarks)); renderBookmarks(); }
+    bookmarkBtn.addEventListener('click',()=>{
+      const ref=buildRef(); if(!ref){ toast('Pick a text first.'); return; }
+      if(bookmarks.some(b=>b.ref===ref)){ toast('Already saved.'); return; }
+      bookmarks.unshift({ ref, category:categorySel.value, book:bookSel.value, location:locationInp.value.trim() });
+      bookmarks=bookmarks.slice(0,12); saveBookmarks(); toast('Saved ⭐');
     });
-
-    /* ═══════════ Live feed ═══════════ */
-    const FRESH_MS = 5 * 60 * 1000;
-    function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
-    function escapeHtml(s) {
-      return String(s || '').replace(/[&<>"']/g, c =>
-        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-    }
-    function renderFeed(docs) {
-      const now = Date.now();
-      const people = docs.map(d => d.data())
-        .filter(p => p.online && p.updatedAt && (now - p.updatedAt.toMillis()) < FRESH_MS);
-      const myBook = isLive ? bookSel.value : null;
-      const myRef  = isLive ? buildRef() : null;
-      people.sort((a, b) => {
-        const am = myBook && a.book === myBook ? 1 : 0;
-        const bm = myBook && b.book === myBook ? 1 : 0;
-        if (am !== bm) return bm - am;
-        return (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0);
+    function renderBookmarks(){
+      if(!bookmarks.length){ bookmarkList.innerHTML='<span class="muted">Nothing saved yet — hit “Save” on a text.</span>'; return; }
+      bookmarkList.innerHTML='';
+      bookmarks.forEach((b,i)=>{
+        const c=document.createElement('span'); c.className='qchip';
+        c.innerHTML=`<span>${catEmoji[b.category]||'📖'} ${escapeHtml(b.ref)}</span><span class="x" title="Remove">✕</span>`;
+        c.querySelector('span:first-child').addEventListener('click',()=>{
+          if(isLive){ toast('Stop your live session first to switch.'); return; }
+          categorySel.value=b.category; populateBooks(); bookSel.value=b.book; locationInp.value=b.location||''; updatePreview();
+          window.scrollTo({top:0,behavior:'smooth'});
+        });
+        c.querySelector('.x').addEventListener('click',(e)=>{ e.stopPropagation(); bookmarks.splice(i,1); saveBookmarks(); });
+        bookmarkList.appendChild(c);
       });
-      onlineCount.textContent = `${people.length} online`;
-      if (people.length === 0) {
-        feedList.innerHTML = `<div class="feed-empty"><p>No one's live yet.<br>
-          <span class="em">Be the first — go live and start the fire.</span> 🕯️</p></div>`;
-        return;
-      }
-      feedList.innerHTML = '';
-      people.forEach(p => {
-        const isMe = p.uid === currentUser.uid;
-        const exactMatch = myRef && p.ref === myRef && !isMe;
-        const bookMatch  = myBook && p.book === myBook && !isMe;
-        const row = document.createElement('div');
-        row.className = 'user-row' + (bookMatch ? ' match' : '');
-        const initial = (p.name || '?').trim().charAt(0).toUpperCase();
-        const avatar = p.photoURL
-          ? `<div class="avatar"><img src="${p.photoURL}" alt="" referrerpolicy="no-referrer"></div>`
-          : `<div class="avatar">${initial}</div>`;
-        let badge = '';
-        if (isMe) badge = `<span class="you-badge">You</span>`;
-        else if (exactMatch) badge = `<span class="match-badge">Same daf!</span>`;
-        else if (bookMatch) badge = `<span class="match-badge">Match</span>`;
-        const metaBits = [];
-        if (p.city) metaBits.push(escapeHtml(p.city));
-        if (p.level) metaBits.push(cap(p.level));
-        const meta = metaBits.join(' · ');
-        const action = isMe
-          ? `<button class="join-btn" disabled>That's you</button>`
-          : `<button class="join-btn" data-name="${escapeHtml(p.name)}">Join</button>`;
-        row.innerHTML = `
-          ${avatar}
-          <div class="user-info">
-            <div class="user-name">${escapeHtml(p.name || 'Anonymous')} ${badge}</div>
-            <div class="user-meta">
-              ${meta ? `<span>${meta}</span><span>·</span>` : ''}
-              <span class="user-topic">${escapeHtml(p.ref)}</span>
-            </div>
-          </div>
-          ${action}`;
+    }
+
+    /* ═══════════ Presence ═══════════ */
+    async function goLive(){
+      const ref=buildRef(); if(!ref){ toast('Pick a text first.'); return; }
+      const cat=LIBRARY[categorySel.value];
+      const visible = $('toggle-visible') ? $('toggle-visible').checked : true;
+      try{
+        await setDoc(doc(db,'presence',currentUser.uid),{
+          uid:currentUser.uid, name:profile.name||currentUser.displayName||'Anonymous', photoURL:currentUser.photoURL||'',
+          city:profile.city||'', level:profile.level||'', language:profile.language||'',
+          category:categorySel.value, categoryLabel:cat.label, book:bookSel.value, location:locationInp.value.trim(),
+          ref, online:true, visible, updatedAt:serverTimestamp()
+        });
+        // Log a session
+        try{ const s=await addDoc(collection(db,'users',currentUser.uid,'sessions'),{ ref, category:categorySel.value, book:bookSel.value, location:locationInp.value.trim(), startedAt:serverTimestamp() }); currentSessionId=s.id; }catch(e){ console.error(e); }
+        setLiveState(true,ref); startHeartbeat(); toast("You're live! 🕯️");
+      }catch(e){ console.error(e); toast('Could not go live. Try again.'); }
+    }
+    async function stopLive(){
+      stopHeartbeat();
+      try{ await deleteDoc(doc(db,'presence',currentUser.uid)); }catch(e){ console.error(e); }
+      if(currentSessionId){ try{ await updateDoc(doc(db,'users',currentUser.uid,'sessions',currentSessionId),{ endedAt:serverTimestamp() }); }catch(e){} currentSessionId=null; }
+      setLiveState(false); toast('You went offline.');
+    }
+    function setLiveState(on,ref){
+      isLive=on;
+      if(on){ liveStatus.classList.add('on'); liveRef.textContent=ref; goBtn.textContent='Stop — go offline'; goBtn.classList.add('live'); goBtn.disabled=false;
+        categorySel.disabled=bookSel.disabled=locationInp.disabled=true;
+      } else { liveStatus.classList.remove('on'); goBtn.textContent='Go live →'; goBtn.classList.remove('live');
+        categorySel.disabled=bookSel.disabled=locationInp.disabled=false; updatePreview(); }
+    }
+    function startHeartbeat(){ stopHeartbeat(); heartbeat=setInterval(()=>{ updateDoc(doc(db,'presence',currentUser.uid),{ updatedAt:serverTimestamp() }).catch(e=>console.error(e)); },60000); }
+    function stopHeartbeat(){ if(heartbeat){ clearInterval(heartbeat); heartbeat=null; } }
+    goBtn.addEventListener('click',()=>{ isLive?stopLive():goLive(); });
+    window.addEventListener('pagehide',()=>{ if(isLive&&currentUser){ try{ deleteDoc(doc(db,'presence',currentUser.uid)); }catch(e){} } });
+
+    /* ═══════════ Friend system ═══════════ */
+    function friendState(uid){
+      if(uid===currentUser.uid) return 'self';
+      if(friendsList.some(f=>f.users.includes(uid))) return 'friends';
+      if(outgoingReqs.some(r=>r.to===uid)) return 'requested';
+      if(incomingReqs.some(r=>r.from===uid)) return 'incoming';
+      return 'none';
+    }
+    async function sendRequest(u){
+      try{
+        await setDoc(doc(db,'friendRequests',`${currentUser.uid}_${u.uid}`),{
+          from:currentUser.uid, to:u.uid,
+          fromName:profile.name||'', fromPhoto:currentUser.photoURL||'', fromCity:profile.city||'', fromLevel:profile.level||'',
+          toName:u.name||'', toPhoto:u.photoURL||'',
+          createdAt:serverTimestamp()
+        });
+        toast(`Friend request sent to ${u.name||'them'}.`);
+      }catch(e){ console.error(e); toast('Could not send request.'); }
+    }
+    async function cancelRequest(toUid){ try{ await deleteDoc(doc(db,'friendRequests',`${currentUser.uid}_${toUid}`)); toast('Request cancelled.'); }catch(e){ console.error(e); } }
+    async function acceptRequest(req){
+      try{
+        await setDoc(doc(db,'friends',pairId(currentUser.uid,req.from)),{
+          users:[currentUser.uid,req.from],
+          info:{ [currentUser.uid]:{name:profile.name||'',photoURL:currentUser.photoURL||'',city:profile.city||'',level:profile.level||''},
+                 [req.from]:{name:req.fromName||'',photoURL:req.fromPhoto||'',city:req.fromCity||'',level:req.fromLevel||''} },
+          createdAt:serverTimestamp()
+        });
+        await deleteDoc(doc(db,'friendRequests',`${req.from}_${currentUser.uid}`));
+        toast(`You're now friends with ${req.fromName||'them'}! 🤝`);
+      }catch(e){ console.error(e); toast('Could not accept.'); }
+    }
+    async function declineRequest(req){ try{ await deleteDoc(doc(db,'friendRequests',`${req.from}_${currentUser.uid}`)); toast('Request declined.'); }catch(e){ console.error(e); } }
+    async function removeFriend(uid){ try{ await deleteDoc(doc(db,'friends',pairId(currentUser.uid,uid))); toast('Friend removed.'); }catch(e){ console.error(e); } }
+
+    /* ═══════════ Renderers ═══════════ */
+    function renderLearnFeed(){
+      const now=Date.now();
+      const people=presenceList.filter(p=>p.online && p.visible!==false && p.updatedAt && (now-p.updatedAt.toMillis())<FRESH_MS);
+      const myBook=isLive?bookSel.value:null, myRef=isLive?buildRef():null;
+      people.sort((a,b)=>{ const am=myBook&&a.book===myBook?1:0, bm=myBook&&b.book===myBook?1:0; if(am!==bm)return bm-am; return (b.updatedAt?.toMillis()||0)-(a.updatedAt?.toMillis()||0); });
+      onlineCount.textContent=`${people.length} online`;
+      if(!people.length){ feedList.innerHTML='<div class="empty"><p>No one\'s live yet.<br><span class="em">Be the first — go live and start the fire.</span> 🕯️</p></div>'; return; }
+      feedList.innerHTML='';
+      people.forEach(p=>{
+        const isMe=p.uid===currentUser.uid, exact=myRef&&p.ref===myRef&&!isMe, bookMatch=myBook&&p.book===myBook&&!isMe;
+        const row=document.createElement('div'); row.className='user-row'+(bookMatch?' match':'');
+        let badge = isMe?'<span class="badge-pill badge-soft">You</span>':exact?'<span class="badge-pill badge-gold">Same daf!</span>':bookMatch?'<span class="badge-pill badge-gold">Match</span>':'';
+        const meta=[p.city&&escapeHtml(p.city), p.level&&cap(p.level)].filter(Boolean).join(' · ');
+        const action=isMe?'<button class="btn-sm" disabled>That\'s you</button>':`<button class="btn-sm btn-gold join-one">Join</button>`;
+        row.innerHTML=`${avatarHtml(p.name,p.photoURL)}<div class="user-info"><div class="user-name">${escapeHtml(p.name||'Anonymous')} ${badge}</div><div class="user-meta">${meta?`<span>${meta}</span><span>·</span>`:''}<span class="user-topic">${escapeHtml(p.ref)}</span></div></div><div class="row-actions">${action}</div>`;
+        if(!isMe) row.querySelector('.join-one').addEventListener('click',()=>openJoin(p));
         feedList.appendChild(row);
       });
-      feedList.querySelectorAll('.join-btn:not([disabled])').forEach(btn => {
-        btn.addEventListener('click', () => {
-          toast(`We'll connect you with ${btn.dataset.name} when live chavruta launches. 🤝`);
+    }
+
+    function renderFriends(){
+      // Incoming requests
+      const rp=$('requests-panel'), rl=$('requests-list');
+      if(incomingReqs.length){ rp.style.display='block'; rl.innerHTML='';
+        incomingReqs.forEach(r=>{
+          const row=document.createElement('div'); row.className='user-row';
+          const meta=[r.fromCity&&escapeHtml(r.fromCity), r.fromLevel&&cap(r.fromLevel)].filter(Boolean).join(' · ');
+          row.innerHTML=`${avatarHtml(r.fromName,r.fromPhoto)}<div class="user-info"><div class="user-name">${escapeHtml(r.fromName||'Someone')}</div><div class="user-meta">${meta?`<span>${meta}</span>`:'<span>Wants to be friends</span>'}</div></div><div class="row-actions"><button class="btn-sm btn-gold acc">Accept</button><button class="btn-sm btn-out dec">Decline</button></div>`;
+          row.querySelector('.acc').addEventListener('click',()=>acceptRequest(r));
+          row.querySelector('.dec').addEventListener('click',()=>declineRequest(r));
+          rl.appendChild(row);
         });
+      } else rp.style.display='none';
+
+      // Friends
+      const fl=$('friends-list'); let onlineN=0;
+      if(friendsList.length){ fl.innerHTML='';
+        const enriched=friendsList.map(f=>{ const uid=f.users.find(u=>u!==currentUser.uid); const info=(f.info&&f.info[uid])||{}; const pres=presenceFor(uid); if(pres)onlineN++; return {uid,info,pres}; });
+        enriched.sort((a,b)=>(b.pres?1:0)-(a.pres?1:0));
+        enriched.forEach(({uid,info,pres})=>{
+          const online=!!pres;
+          const row=document.createElement('div'); row.className='user-row'+(online?' match':'');
+          const meta=[info.city&&escapeHtml(info.city), info.level&&cap(info.level)].filter(Boolean).join(' · ');
+          const learning = online ? `<span class="user-topic">${escapeHtml(pres.ref)}</span>` : '<span class="user-meta">Offline</span>';
+          const join = online ? `<button class="btn-sm btn-gold join-one">Join</button>` : '';
+          row.innerHTML=`${avatarHtml(info.name,info.photoURL,'',online)}<div class="user-info"><div class="user-name">${escapeHtml(info.name||'Friend')} ${online?'<span class="badge-pill badge-green">Live</span>':''}</div><div class="user-meta">${meta?`<span>${meta}</span><span>·</span>`:''}${learning}</div></div><div class="row-actions">${join}<button class="btn-sm btn-danger rm">Remove</button></div>`;
+          if(online) row.querySelector('.join-one')?.addEventListener('click',()=>openJoin(pres));
+          row.querySelector('.rm').addEventListener('click',()=>removeFriend(uid));
+          fl.appendChild(row);
+        });
+      } else fl.innerHTML='<div class="empty"><p>No friends yet.<br><span class="em">Head to Discover and add some chavrutas.</span></p></div>';
+      $('friends-online-count').textContent=`${onlineN} online`;
+
+      // Sent
+      const sp=$('sent-panel'), sl=$('sent-list');
+      if(outgoingReqs.length){ sp.style.display='block'; sl.innerHTML='';
+        outgoingReqs.forEach(r=>{
+          const row=document.createElement('div'); row.className='user-row';
+          row.innerHTML=`${avatarHtml(r.toName,r.toPhoto)}<div class="user-info"><div class="user-name">${escapeHtml(r.toName||'Someone')}</div><div class="user-meta"><span>Request pending…</span></div></div><div class="row-actions"><button class="btn-sm btn-out cancel">Cancel</button></div>`;
+          row.querySelector('.cancel').addEventListener('click',()=>cancelRequest(r.to));
+          sl.appendChild(row);
+        });
+      } else sp.style.display='none';
+
+      updateBadges();
+    }
+
+    let discoverFilter='';
+    $('discover-search').addEventListener('input',(e)=>{ discoverFilter=e.target.value.toLowerCase().trim(); renderDiscover(); });
+    function renderDiscover(){
+      const dl=$('discover-list');
+      let users=allUsers.filter(u=>u.uid!==currentUser.uid && u.profileComplete);
+      if(discoverFilter) users=users.filter(u=>(`${u.name||''} ${u.city||''}`).toLowerCase().includes(discoverFilter));
+      // online first
+      users.sort((a,b)=>(presenceFor(b.uid)?1:0)-(presenceFor(a.uid)?1:0));
+      if(!users.length){ dl.innerHTML=`<div class="empty"><p>${discoverFilter?'No one matches that search.':'No one here yet.'}</p></div>`; return; }
+      dl.innerHTML='';
+      users.forEach(u=>{
+        const pres=presenceFor(u.uid), online=!!pres, st=friendState(u.uid);
+        const row=document.createElement('div'); row.className='user-row';
+        const meta=[u.city&&escapeHtml(u.city), u.level&&cap(u.level), u.denomination&&cap(u.denomination)].filter(Boolean).join(' · ');
+        const learning = online ? `<span class="user-topic">${escapeHtml(pres.ref)}</span>` : '';
+        let btn='';
+        if(st==='friends') btn='<button class="btn-sm" disabled>Friends ✓</button>';
+        else if(st==='requested') btn='<button class="btn-sm btn-out cancel">Requested</button>';
+        else if(st==='incoming') btn='<button class="btn-sm btn-gold accept-disc">Accept</button>';
+        else btn='<button class="btn-sm btn-gold add">Add friend</button>';
+        row.innerHTML=`${avatarHtml(u.name,u.photoURL,'',online)}<div class="user-info"><div class="user-name">${escapeHtml(u.name||'Learner')} ${online?'<span class="badge-pill badge-green">Live</span>':''}</div><div class="user-meta">${meta?`<span>${meta}</span>`:''}${learning?`<span>·</span>${learning}`:''}</div></div><div class="row-actions">${btn}</div>`;
+        if(st==='none') row.querySelector('.add').addEventListener('click',()=>sendRequest(u));
+        else if(st==='requested') row.querySelector('.cancel').addEventListener('click',()=>cancelRequest(u.uid));
+        else if(st==='incoming') row.querySelector('.accept-disc').addEventListener('click',()=>{ const r=incomingReqs.find(x=>x.from===u.uid); if(r)acceptRequest(r); });
+        dl.appendChild(row);
       });
     }
-    function startFeed() {
-      if (feedStarted) return;
-      feedStarted = true;
-      onSnapshot(collection(db, 'presence'),
-        (snap) => renderFeed(snap.docs),
-        (err) => { console.error(err); toast('Live feed unavailable — check Firestore rules.'); });
+
+    function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+    function computeStreak(dates){
+      if(!dates.length)return 0;
+      const days=[...new Set(dates.map(d=>startOfDay(d)))].sort((a,b)=>b-a);
+      const DAY=86400000; const today=startOfDay(Date.now());
+      if(days[0]!==today && days[0]!==today-DAY) return 0;
+      let streak=1;
+      for(let i=1;i<days.length;i++){ if(days[i-1]-days[i]===DAY)streak++; else break; }
+      return streak;
     }
+    function renderActivity(){
+      const dates=sessionsList.map(s=>s.startedAt?.toDate?.()).filter(Boolean);
+      $('stat-total').textContent=sessionsList.length;
+      const weekAgo=Date.now()-7*86400000;
+      $('stat-week').textContent=dates.filter(d=>d.getTime()>=weekAgo).length;
+      const uniqueDays=new Set(dates.map(d=>startOfDay(d))).size;
+      $('stat-days').textContent=uniqueDays;
+      const streak=computeStreak(dates);
+      $('stat-streak').textContent=streak;
+      $('stat-streak-sub').textContent=streak>0?`${streak} day${streak>1?'s':''} in a row`:'Go live to start';
+      const sl=$('sessions-list');
+      const sorted=[...sessionsList].sort((a,b)=>(b.startedAt?.toMillis?.()||0)-(a.startedAt?.toMillis?.()||0)).slice(0,40);
+      if(!sorted.length){ sl.innerHTML='<div class="empty"><p>No sessions yet.<br><span class="em">Go live on a text to start your streak.</span></p></div>'; return; }
+      sl.innerHTML='';
+      sorted.forEach(s=>{
+        const d=s.startedAt?.toDate?.(); const when=d?timeAgo(d):'';
+        const row=document.createElement('div'); row.className='sess-row';
+        row.innerHTML=`<div class="sess-ic">${catEmoji[s.category]||'📖'}</div><div class="sess-info"><div class="sess-ref">${escapeHtml(s.ref)}</div><div class="sess-time">${escapeHtml(when)}</div></div>`;
+        sl.appendChild(row);
+      });
+    }
+    function timeAgo(d){
+      const s=Math.floor((Date.now()-d.getTime())/1000);
+      if(s<60)return 'just now'; const m=Math.floor(s/60); if(m<60)return `${m} min ago`;
+      const h=Math.floor(m/60); if(h<24)return `${h} hr${h>1?'s':''} ago`;
+      const dd=Math.floor(h/24); if(dd<7)return `${dd} day${dd>1?'s':''} ago`;
+      return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    }
+
+    function updateBadges(){
+      const n=incomingReqs.length;
+      ['badge-friends','badge-friends-m'].forEach(id=>{ const b=$(id); if(!b)return; b.textContent=n; b.classList.toggle('show',n>0); });
+    }
+
+    /* ═══════════ Join modal ═══════════ */
+    let joinTarget=null;
+    function openJoin(p){
+      joinTarget=p;
+      $('jm-avatar').innerHTML = p.photoURL?`<img src="${escapeHtml(p.photoURL)}" referrerpolicy="no-referrer">`:escapeHtml((p.name||'?').charAt(0).toUpperCase());
+      $('jm-name').textContent=p.name||'Learner';
+      $('jm-learning').innerHTML=`Learning <strong style="color:var(--gold)">${escapeHtml(p.ref||'')}</strong>`;
+      const st=friendState(p.uid);
+      $('jm-add').textContent = st==='friends'?'Already friends ✓':st==='requested'?'Request sent':'Add friend';
+      $('jm-add').disabled = (st==='friends'||st==='requested');
+      $('join-modal').classList.add('show');
+    }
+    $('jm-close').addEventListener('click',()=>$('join-modal').classList.remove('show'));
+    $('join-modal').addEventListener('click',(e)=>{ if(e.target.id==='join-modal')$('join-modal').classList.remove('show'); });
+    $('jm-add').addEventListener('click',()=>{ if(joinTarget && friendState(joinTarget.uid)==='none'){ sendRequest({uid:joinTarget.uid,name:joinTarget.name,photoURL:joinTarget.photoURL}); } $('join-modal').classList.remove('show'); });
+
+    /* ═══════════ Navigation ═══════════ */
+    function switchView(name){
+      document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id===`view-${name}`));
+      document.querySelectorAll('.nav-item[data-view]').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
+      document.querySelectorAll('.mtab[data-view]').forEach(n=>n.classList.toggle('active', n.dataset.view===name));
+      window.scrollTo({top:0});
+    }
+    document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
+
+    /* ═══════════ Theme ═══════════ */
+    function applyTheme(dark){ document.documentElement.setAttribute('data-theme', dark?'dark':'light'); localStorage.setItem('pitom_theme', dark?'dark':'light'); if($('toggle-dark'))$('toggle-dark').checked=dark; }
+    (function initTheme(){ const t=localStorage.getItem('pitom_theme'); if(t==='dark')document.documentElement.setAttribute('data-theme','dark'); })();
+
+    /* ═══════════ Settings ═══════════ */
+    function fillSettings(){
+      $('set-name').value=profile.name||''; $('set-city').value=profile.city||''; $('set-bio').value=profile.bio||'';
+      setSelected('set-level-chips',profile.level); setSelected('set-denom-chips',profile.denomination); setSelected('set-lang-chips',profile.language);
+      if($('toggle-dark'))$('toggle-dark').checked = localStorage.getItem('pitom_theme')==='dark';
+    }
+    $('save-settings-btn').addEventListener('click',async()=>{
+      const name=$('set-name').value.trim()||profile.name, city=$('set-city').value.trim(), bio=$('set-bio').value.trim();
+      const level=getSelected('set-level-chips')||profile.level, denom=getSelected('set-denom-chips')||profile.denomination, lang=getSelected('set-lang-chips')||profile.language;
+      try{
+        await updateDoc(doc(db,'users',currentUser.uid),{ name, city, bio, level, denomination:denom, language:lang });
+        profile={...profile, name, city, bio, level, denomination:denom, language:lang};
+        updateMiniUser();
+        const m=$('settings-saved'); m.style.display='block'; setTimeout(()=>m.style.display='none',2000);
+      }catch(e){ console.error(e); toast('Could not save.'); }
+    });
+    $('toggle-dark').addEventListener('change',(e)=>applyTheme(e.target.checked));
+
+    function updateMiniUser(){
+      $('mini-avatar').innerHTML = currentUser.photoURL?`<img src="${escapeHtml(currentUser.photoURL)}" referrerpolicy="no-referrer">`:escapeHtml((profile.name||'?').charAt(0).toUpperCase());
+      $('mini-name').textContent=(profile.name||'You').split(' ')[0];
+      $('mini-sub').textContent=[profile.city,profile.level&&cap(profile.level)].filter(Boolean).join(' · ')||'Learner';
+    }
+
+    /* ═══════════ Sign in / out ═══════════ */
+    signinBtn.addEventListener('click',async()=>{
+      signinBtn.disabled=true;
+      try{ await signInWithPopup(auth,provider); }
+      catch(e){ console.error('popup sign-in failed:',e);
+        if(e.code==='auth/popup-closed-by-user'||e.code==='auth/cancelled-popup-request'){}
+        else if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment'){ try{ await signInWithRedirect(auth,provider); }catch(e2){ console.error(e2); } }
+        else toast('Sign-in failed. Please try again.');
+      } finally { signinBtn.disabled=false; }
+    });
+    getRedirectResult(auth).catch(e=>console.error(e));
+    async function doSignOut(){ if(isLive)await stopLive(); await signOut(auth); window.location.href='index.html'; }
+    $('sidebar-signout').addEventListener('click',doSignOut);
+    $('settings-signout').addEventListener('click',doSignOut);
+
+    /* ═══════════ Save profile (new users) ═══════════ */
+    saveBtn.addEventListener('click',async()=>{
+      const city=$('city').value.trim(), level=getSelected('level-chips'), denom=getSelected('denom-chips'), lang=getSelected('lang-chips');
+      if(!city||!level||!denom||!lang){ errorMsg.style.display='block'; return; }
+      errorMsg.style.display='none'; saveBtn.disabled=true; saveBtn.textContent='Saving…';
+      try{
+        profile={ uid:currentUser.uid, name:currentUser.displayName, email:currentUser.email, photoURL:currentUser.photoURL, city, level, denomination:denom, language:lang, bio:'', profileComplete:true, createdAt:new Date().toISOString() };
+        await setDoc(doc(db,'users',currentUser.uid),profile);
+        enterApp();
+      }catch(e){ console.error(e); saveBtn.disabled=false; saveBtn.textContent='Save & start learning →'; errorMsg.textContent='Something went wrong. Please try again.'; errorMsg.style.display='block'; }
+    });
 
     /* ═══════════ View switching ═══════════ */
-    function showSignin() {
-      loader.style.display = 'none';
-      onboard.style.display = 'flex';
-      appEl.style.display = 'none';
-      stepSignin.style.display = 'block';
-      stepProfile.style.display = 'none';
-    }
-    function showProfile(user) {
-      loader.style.display = 'none';
-      onboard.style.display = 'flex';
-      appEl.style.display = 'none';
-      stepSignin.style.display = 'none';
-      stepProfile.style.display = 'block';
-      document.getElementById('user-first-name').textContent =
-        (user.displayName?.split(' ')[0]) || 'there';
-    }
-    function enterApp() {
-      loader.style.display = 'none';
-      onboard.style.display = 'none';
-      appEl.style.display = 'block';
-      navName.textContent = (profile.name || currentUser.displayName || 'there').split(' ')[0];
-      startFeed();
+    function showSignin(){ loader.style.display='none'; onboard.style.display='flex'; shell.style.display='none'; stepSignin.style.display='block'; stepProfile.style.display='none'; }
+    function showProfile(user){ loader.style.display='none'; onboard.style.display='flex'; shell.style.display='none'; stepSignin.style.display='none'; stepProfile.style.display='block'; $('user-first-name').textContent=(user.displayName?.split(' ')[0])||'there'; }
+    function enterApp(){
+      loader.style.display='none'; onboard.style.display='none'; shell.style.display='block';
+      updateMiniUser(); fillSettings(); loadBookmarks(); startListeners();
     }
 
-    /* ═══════════ Sign in ═══════════
-       Popup keeps the whole flow in this tab, so the auth result can't get
-       lost on a cross-domain redirect (which is what was looping us back to
-       the Welcome screen on GitHub Pages). If the popup is blocked, we fall
-       back to the redirect flow. onAuthStateChanged handles routing either way.
-    */
-    signinBtn.addEventListener('click', async () => {
-      signinBtn.disabled = true;
-      try {
-        await signInWithPopup(auth, provider);
-        // success → onAuthStateChanged routes us into the app
-      } catch (e) {
-        console.error('popup sign-in failed:', e);
-        if (e.code === 'auth/popup-closed-by-user' ||
-            e.code === 'auth/cancelled-popup-request') {
-          // user closed the popup — just let them try again
-        } else if (e.code === 'auth/popup-blocked' ||
-                   e.code === 'auth/operation-not-supported-in-this-environment') {
-          // popups disabled → fall back to full-page redirect
-          try { await signInWithRedirect(auth, provider); } catch (e2) { console.error(e2); }
-        } else {
-          toast('Sign-in failed. Please try again.');
-        }
-      } finally {
-        signinBtn.disabled = false;
-      }
-    });
+    /* ═══════════ Firestore listeners ═══════════ */
+    function startListeners(){
+      if(listenersStarted)return; listenersStarted=true;
+      onSnapshot(collection(db,'presence'),(s)=>{ presenceList=s.docs.map(d=>d.data()); renderLearnFeed(); renderFriends(); renderDiscover(); },(e)=>{ console.error(e); toast('Live feed needs the Firestore rules published.'); });
+      onSnapshot(query(collection(db,'friendRequests'),where('to','==',currentUser.uid)),(s)=>{ incomingReqs=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
+      onSnapshot(query(collection(db,'friendRequests'),where('from','==',currentUser.uid)),(s)=>{ outgoingReqs=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
+      onSnapshot(query(collection(db,'friends'),where('users','array-contains',currentUser.uid)),(s)=>{ friendsList=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
+      onSnapshot(collection(db,'users'),(s)=>{ allUsers=s.docs.map(d=>d.data()); renderDiscover(); },(e)=>console.error(e));
+      onSnapshot(collection(db,'users',currentUser.uid,'sessions'),(s)=>{ sessionsList=s.docs.map(d=>d.data()); renderActivity(); },(e)=>console.error(e));
+    }
 
-    // Complete any redirect-fallback sign-in (errors only; routing via onAuthStateChanged).
-    getRedirectResult(auth).catch(e => console.error(e));
-
-    /* ═══════════ Save profile ═══════════ */
-    saveBtn.addEventListener('click', async () => {
-      const city  = document.getElementById('city').value.trim();
-      const level = getSelected('level-chips');
-      const denom = getSelected('denom-chips');
-      const lang  = getSelected('lang-chips');
-      if (!city || !level || !denom || !lang) { errorMsg.style.display = 'block'; return; }
-      errorMsg.style.display = 'none';
-      saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
-      try {
-        profile = {
-          uid: currentUser.uid,
-          name: currentUser.displayName,
-          email: currentUser.email,
-          photoURL: currentUser.photoURL,
-          city, level, denomination: denom, language: lang,
-          profileComplete: true,
-          createdAt: new Date().toISOString()
-        };
-        await setDoc(doc(db, 'users', currentUser.uid), profile);
-        enterApp();   // straight into the live app — no extra screen
-      } catch (e) {
-        console.error(e);
-        saveBtn.disabled = false; saveBtn.textContent = 'Save & start learning →';
-        errorMsg.textContent = 'Something went wrong. Please try again.';
-        errorMsg.style.display = 'block';
-      }
-    });
-
-    /* ═══════════ Auth gate / router ═══════════ */
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) { showSignin(); return; }
-      currentUser = user;
-      try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists() && snap.data().profileComplete) {
-          profile = snap.data();
-          enterApp();            // returning user → straight to the app
-        } else {
-          showProfile(user);     // new user → set up profile, then auto-enter
-        }
-      } catch (e) {
-        console.error(e);
-        showProfile(user);
-      }
-    });
-
-    signoutBtn.addEventListener('click', async () => {
-      if (isLive) { await stopLive(); }
-      await signOut(auth);
-      window.location.href = 'index.html';
+    /* ═══════════ Auth gate ═══════════ */
+    onAuthStateChanged(auth,async(user)=>{
+      if(!user){ showSignin(); return; }
+      currentUser=user;
+      try{
+        const snap=await getDoc(doc(db,'users',user.uid));
+        if(snap.exists() && snap.data().profileComplete){ profile=snap.data(); enterApp(); }
+        else showProfile(user);
+      }catch(e){ console.error(e); showProfile(user); }
     });
   </script>
 
