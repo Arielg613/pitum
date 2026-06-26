@@ -1643,6 +1643,7 @@
       if(activeCallId){ toast('Already in a call.'); return; }
       try{ await getLocalMedia(); }catch(e){ toast('Allow camera & mic to call.'); return; }
       setupPc();
+      resetLocalVideoPos();
       $('call-modal').classList.add('show'); $('call-info').textContent='Calling '+(name||'')+'…';
       const callRef = doc(collection(db,'calls'));
       activeCallId = callRef.id;
@@ -1664,6 +1665,7 @@
     async function answerCall(callId, data){
       try{ await getLocalMedia(); }catch(e){ toast('Allow camera & mic to answer.'); return; }
       setupPc();
+      resetLocalVideoPos();
       $('call-modal').classList.add('show'); $('call-info').textContent='Connecting…';
       activeCallId=callId;
       const callRef=doc(db,'calls',callId);
@@ -1716,6 +1718,26 @@
     $('call-hangup').addEventListener('click',()=>endCall(true));
     $('call-mute').addEventListener('click',()=>{ if(!localStream)return; const t=localStream.getAudioTracks()[0]; if(t){ t.enabled=!t.enabled; $('call-mute').classList.toggle('off',!t.enabled); } });
     $('call-cam').addEventListener('click',()=>{ if(!localStream)return; const t=localStream.getVideoTracks()[0]; if(t){ t.enabled=!t.enabled; $('call-cam').classList.toggle('off',!t.enabled); } });
+
+    /* Draggable self-view (FaceTime-style: drag anywhere, snaps to nearest corner) */
+    function resetLocalVideoPos(){ const v=$('local-video'); v.style.left=v.style.top='auto'; v.style.right='18px'; v.style.bottom='18px'; v.style.transition=''; }
+    (function makeLocalDraggable(){
+      const v=$('local-video'); let dragging=false, sx=0, sy=0, ox=0, oy=0;
+      const pt=(e)=> e.touches&&e.touches[0] ? {x:e.touches[0].clientX,y:e.touches[0].clientY} : {x:e.clientX,y:e.clientY};
+      function start(e){ dragging=true; const p=pt(e); const r=v.getBoundingClientRect(); sx=p.x; sy=p.y; ox=r.left; oy=r.top; v.style.transition='none'; if(e.cancelable)e.preventDefault(); }
+      function move(e){ if(!dragging)return; const p=pt(e); const cont=v.parentElement.getBoundingClientRect();
+        let nx=ox+(p.x-sx)-cont.left, ny=oy+(p.y-sy)-cont.top;
+        nx=Math.max(8, Math.min(nx, cont.width - v.offsetWidth - 8));
+        ny=Math.max(8, Math.min(ny, cont.height - v.offsetHeight - 8));
+        v.style.left=nx+'px'; v.style.top=ny+'px'; v.style.right='auto'; v.style.bottom='auto'; if(e.cancelable)e.preventDefault(); }
+      function end(){ if(!dragging)return; dragging=false; const cont=v.parentElement.getBoundingClientRect(); const r=v.getBoundingClientRect();
+        const cx=r.left+r.width/2-cont.left, cy=r.top+r.height/2-cont.top; const m=18;
+        v.style.transition='all 0.22s cubic-bezier(.2,.8,.2,1)'; v.style.left=v.style.right=v.style.top=v.style.bottom='auto';
+        if(cx < cont.width/2) v.style.left=m+'px'; else v.style.right=m+'px';
+        if(cy < cont.height/2) v.style.top=m+'px'; else v.style.bottom=m+'px'; }
+      v.addEventListener('mousedown',start); window.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+      v.addEventListener('touchstart',start,{passive:false}); window.addEventListener('touchmove',move,{passive:false}); window.addEventListener('touchend',end);
+    })();
 
     // Join modal "Call" button
     $('jm-call')?.addEventListener('click',()=>{ if(joinTarget){ $('join-modal').classList.remove('show'); startCall(joinTarget.uid, joinTarget.name, joinTarget.photoURL); } });
