@@ -1174,7 +1174,7 @@
     });
 
     /* ═══════════ SEFARIA TEXT READER ═══════════ */
-    let readerRef = null, readerBook = null, readerChapter = 1, readerCategory = null;
+    let readerBook = null, readerPos = 1, readerCategory = null;
 
     const SEFARIA_BOOK_MAP = {
       'Genesis':'Genesis','Exodus':'Exodus','Leviticus':'Leviticus','Numbers':'Numbers','Deuteronomy':'Deuteronomy',
@@ -1195,60 +1195,88 @@
       'Chullin':'Chullin','Bekhorot':'Bekhorot','Niddah':'Niddah'
     };
 
-    function sefariaRef(book, chapter, cat){
-      const b = SEFARIA_BOOK_MAP[book] || book;
-      if(cat==='gemara') return `${b}.${chapter}a`; // daf pages
-      return `${b}.${chapter}`;
+    // readerPos: for gemara it's an amud-index (0 => daf 2a, 1 => 2b, 2 => 3a …);
+    // for everything else it's a chapter number (>= 1).
+    function readerMinPos(){ return readerCategory==='gemara' ? 0 : 1; }
+
+    function readerBookRef(){
+      const b = SEFARIA_BOOK_MAP[readerBook] || readerBook;
+      if(readerCategory==='mishna') return 'Mishnah ' + b;
+      return b;
+    }
+
+    function buildReaderRef(){
+      const b = readerBookRef();
+      if(readerCategory==='gemara'){
+        const daf = 2 + Math.floor(readerPos/2);
+        const amud = readerPos % 2 === 0 ? 'a' : 'b';
+        return `${b}.${daf}${amud}`;
+      }
+      return `${b}.${readerPos}`;
+    }
+
+    function parseReaderPos(loc){
+      if(readerCategory==='gemara'){
+        if(!loc) return 0;
+        const m = loc.match(/(\d+)\s*([abAB])?/);
+        if(!m) return 0;
+        const daf = parseInt(m[1]) || 2;
+        const amud = (m[2]||'a').toLowerCase()==='b' ? 1 : 0;
+        return Math.max(0, (daf-2)*2 + amud);
+      }
+      const n = loc ? parseInt(loc.split(/[:\s]/)[0]) : 1;
+      return (n && n>=1) ? n : 1;
     }
 
     async function loadReaderChapter(){
       const body=$('reader-body'); body.innerHTML='<div class="reader-loading">Loading from Sefaria…</div>';
-      const sRef = sefariaRef(readerBook, readerChapter, readerCategory);
-      const url = `https://www.sefaria.org/api/texts/${encodeURIComponent(sRef)}?context=0&pad=0&commentary=0&language=bilingual`;
+      const sRef = buildReaderRef();
+      const url = `https://www.sefaria.org/api/texts/${encodeURIComponent(sRef)}?context=0&pad=0&commentary=0`;
       try{
         const res = await fetch(url);
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
-        const heArr = Array.isArray(data.he) ? data.he : (typeof data.he==='string'?[data.he]:[]);
-        const enArr = Array.isArray(data.text) ? data.text : (typeof data.text==='string'?[data.text]:[]);
-        const titleHe = data.heTitle||data.he_title||'';
-        const titleEn = data.title||data.sectionRef||sRef;
-        $('reader-title').textContent = `${titleEn} — Chapter ${readerChapter}`;
+        const flat = (x)=> Array.isArray(x) ? x.flat(Infinity) : (typeof x==='string' ? [x] : []);
+        const heArr = flat(data.he);
+        const enArr = flat(data.text);
+        const titleEn = data.ref || data.sectionRef || sRef;
+        const titleHe = data.heRef || data.heTitle || '';
+        $('reader-title').textContent = titleEn;
         $('reader-sub').textContent = titleHe;
         $('reader-sefaria').href = `https://www.sefaria.org/${encodeURIComponent(sRef)}`;
-        if(!heArr.length && !enArr.length){ body.innerHTML='<div class="reader-loading">No text found for this section.<br>Try a different chapter.</div>'; return; }
+        if(!heArr.length && !enArr.length){ body.innerHTML='<div class="reader-loading">No text found for this section.<br>Try the next/prev section, or a different text.</div>'; return; }
         body.innerHTML='';
         const len = Math.max(heArr.length, enArr.length);
         for(let i=0;i<len;i++){
-          const he=(heArr[i]||'').replace(/<[^>]*>/g,'').trim();
-          const en=(enArr[i]||'').replace(/<[^>]*>/g,'').trim();
+          const he=String(heArr[i]||'').replace(/<[^>]*>/g,'').trim();
+          const en=String(enArr[i]||'').replace(/<[^>]*>/g,'').trim();
+          if(!he && !en) continue;
           const v=document.createElement('div'); v.className='verse';
-          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${escapeHtml(he)}</div>`:''}${en?`<div class="en">${escapeHtml(en)}</div>`:''}</div>`;
+          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${he}</div>`:''}${en?`<div class="en">${en}</div>`:''}</div>`;
           body.appendChild(v);
         }
+        body.scrollTop=0;
       }catch(e){
         console.error(e);
-        body.innerHTML=`<div class="reader-loading">Couldn't load text. Check your connection or try a different chapter.<br><small>${escapeHtml(String(e))}</small></div>`;
+        body.innerHTML=`<div class="reader-loading">Couldn't load text. Check your connection or try a different section.<br><small>${escapeHtml(String(e))}</small></div>`;
       }
     }
 
-    function openReader(book, chapter, cat){
-      readerBook=book; readerChapter=chapter||1; readerCategory=cat||'tanach';
+    function openReader(book, loc, cat){
+      readerBook=book; readerCategory=cat||'tanach'; readerPos=parseReaderPos(loc);
       $('reader-modal').classList.add('show');
       loadReaderChapter();
     }
 
     $('reader-close').addEventListener('click',()=>$('reader-modal').classList.remove('show'));
     $('reader-modal').addEventListener('click',(e)=>{ if(e.target.id==='reader-modal')$('reader-modal').classList.remove('show'); });
-    $('reader-prev').addEventListener('click',()=>{ if(readerChapter>1){ readerChapter--; loadReaderChapter(); }});
-    $('reader-next').addEventListener('click',()=>{ readerChapter++; loadReaderChapter(); });
+    $('reader-prev').addEventListener('click',()=>{ if(readerPos>readerMinPos()){ readerPos--; loadReaderChapter(); }});
+    $('reader-next').addEventListener('click',()=>{ readerPos++; loadReaderChapter(); });
 
     $('read-text-btn').addEventListener('click',()=>{
       const book=bookSel.value;
       if(!book){ toast('Pick a text first.'); return; }
-      const loc=locationInp.value.trim();
-      const chap = loc ? parseInt(loc.split(/[: ]/)[0])||1 : 1;
-      openReader(book, chap, categorySel.value);
+      openReader(book, locationInp.value.trim(), categorySel.value);
     });
 
     /* ═══════════ Firestore listeners (includes chat) ═══════════ */
