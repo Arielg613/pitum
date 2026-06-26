@@ -775,9 +775,12 @@
         const c=document.createElement('span'); c.className='qchip';
         c.innerHTML=`<span>${catEmoji[b.category]||'📖'} ${escapeHtml(b.ref)}</span><span class="x" title="Remove">✕</span>`;
         c.querySelector('span:first-child').addEventListener('click',()=>{
-          if(isLive){ toast('Stop your live session first to switch.'); return; }
-          categorySel.value=b.category; populateBooks(); bookSel.value=b.book; locationInp.value=b.location||''; updatePreview();
-          window.scrollTo({top:0,behavior:'smooth'});
+          // Always open the saved text in the reader (works even while live)
+          openReader(b.book, b.location||'', b.category);
+          // Also load it into the picker when not currently live
+          if(!isLive){
+            categorySel.value=b.category; populateBooks(); bookSel.value=b.book; locationInp.value=b.location||''; updatePreview();
+          }
         });
         c.querySelector('.x').addEventListener('click',(e)=>{ e.stopPropagation(); bookmarks.splice(i,1); saveBookmarks(); });
         bookmarkList.appendChild(c);
