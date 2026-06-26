@@ -308,7 +308,10 @@
     .vnum { font-size:0.75rem; color:var(--ink-mute); font-weight:700; min-width:26px; padding-top:6px; }
     .vtext { flex:1; min-width:0; }
     .verse .he { font-family:'Frank Ruhl Libre',serif; font-size:calc(1.5rem * var(--rs,1)); font-weight:500; line-height:2.05; direction:rtl; text-align:right; color:var(--ink); margin-bottom:10px; }
-    .verse .en { font-size:calc(1.02rem * var(--rs,1)); line-height:1.7; color:var(--ink-soft); }
+    .verse .en { font-size:calc(1.02rem * var(--rs,1)); line-height:1.7; color:var(--ink-mute); }
+    .verse .en b, .verse .en strong { font-weight:700; color:var(--ink); }
+    .verse .he b, .verse .he strong { font-weight:700; color:var(--ink); }
+    .verse .he { color:var(--ink-soft); }
     /* side-by-side mode */
     .reader-body.side .vtext { display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:start; }
     .reader-body.side .he { order:2; margin-bottom:0; }
@@ -1280,12 +1283,16 @@
       return (n && n>=1) ? n : 1;
     }
 
-    // Strip Sefaria footnotes / markers / alternate-translation notes, return clean plain text
+    // Strip Sefaria footnotes / markers, but KEEP bold/italic so the Steinsaltz
+    // literal translation (bold) stays distinct from explanatory additions.
     const _readerTmp = document.createElement('div');
     function cleanSefaria(html){
       _readerTmp.innerHTML = String(html||'');
       _readerTmp.querySelectorAll('sup, .footnote, .footnote-marker, i.footnote, .mam-spi-pe, .mam-spi-samekh').forEach(n=>n.remove());
-      return _readerTmp.textContent.replace(/\s+/g,' ').trim();
+      let out = _readerTmp.innerHTML;
+      // keep only safe formatting tags (bold/italic); drop everything else
+      out = out.replace(/<(?!\/?(b|strong|i|em)\b)[^>]*>/gi,'');
+      return out.replace(/\s+/g,' ').trim();
     }
 
     async function loadReaderChapter(){
@@ -1312,7 +1319,7 @@
           const en=cleanSefaria(enArr[i]);
           if(!he && !en) continue;
           const v=document.createElement('div'); v.className='verse';
-          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${escapeHtml(he)}</div>`:''}${en?`<div class="en">${escapeHtml(en)}</div>`:''}</div>`;
+          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${he}</div>`:''}${en?`<div class="en">${en}</div>`:''}</div>`;
           body.appendChild(v);
         }
         body.scrollTop=0;
