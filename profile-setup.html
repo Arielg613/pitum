@@ -305,7 +305,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -322,6 +322,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
+    // Always show the Google account chooser instead of silently re-using
+    // whichever account is already signed in to the browser.
+    provider.setCustomParameters({ prompt: 'select_account' });
 
     const stepSignin  = document.getElementById('step-signin');
     const stepProfile = document.getElementById('step-profile');
@@ -349,30 +352,44 @@
       return sel ? sel.dataset.value : null;
     }
 
-    // Auth state
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Check if profile already complete
-        const ref = doc(db, 'users', user.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists() && snap.data().profileComplete) {
-          showDone();
-          return;
-        }
-        showProfile(user);
+    function showSignin() {
+      stepSignin.style.display = 'block';
+      stepProfile.style.display = 'none';
+      stepDone.style.display = 'none';
+    }
+
+    async function routeUser(user) {
+      // Decide whether to show the profile form or the "all set" screen,
+      // based on whether this user already finished their profile.
+      const ref = doc(db, 'users', user.uid);
+      const snap = await getDoc(ref);
+      if (snap.exists() && snap.data().profileComplete) {
+        showDone();
       } else {
-        stepSignin.style.display = 'block';
-        stepProfile.style.display = 'none';
-        stepDone.style.display = 'none';
+        showProfile(user);
       }
-    });
+    }
 
-    // Handle redirect result on page load
-    getRedirectResult(auth).catch(e => console.error(e));
+    // On page load: only move past the sign-in screen if the user JUST
+    // completed a sign-in redirect. A leftover/persisted session does NOT
+    // auto-advance — we always start fresh on the sign-in screen.
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          return routeUser(result.user);
+        }
+        showSignin();
+      })
+      .catch((e) => {
+        console.error(e);
+        showSignin();
+      });
 
-    // Sign in
+    // Sign in — always force the Google account chooser.
     signinBtn.addEventListener('click', async () => {
       try {
+        // Clear any persisted session so the chooser truly starts fresh.
+        await signOut(auth).catch(() => {});
         await signInWithRedirect(auth, provider);
       } catch (e) {
         console.error(e);
