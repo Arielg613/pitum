@@ -1151,18 +1151,16 @@
       if(!currentUser) return;
       const cid = convId(currentUser.uid, uid);
       const ref = doc(db,'conversations',cid);
-      const snap = await getDoc(ref);
-      if(!snap.exists()){
+      try{
+        // create-or-update (merge) so we never read a non-existent doc, which Firestore rules deny
         await setDoc(ref,{
           users:[currentUser.uid,uid],
           info:{
             [currentUser.uid]:{ name:profile?.name||currentUser.displayName||'', photoURL:currentUser.photoURL||'' },
             [uid]:{ name, photoURL:photoURL||'' }
-          },
-          lastMsg:'', lastAt:serverTimestamp(),
-          unread:{ [currentUser.uid]:0, [uid]:0 }
-        });
-      }
+          }
+        },{merge:true});
+      }catch(e){ console.error('startChat:',e); toast('Could not open chat — publish the conversations Firestore rule.'); return; }
       switchView('messages');
       setTimeout(()=>openThread(cid,uid,{name,photoURL}),300);
     }
