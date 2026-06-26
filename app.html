@@ -1280,6 +1280,14 @@
       return (n && n>=1) ? n : 1;
     }
 
+    // Strip Sefaria footnotes / markers / alternate-translation notes, return clean plain text
+    const _readerTmp = document.createElement('div');
+    function cleanSefaria(html){
+      _readerTmp.innerHTML = String(html||'');
+      _readerTmp.querySelectorAll('sup, .footnote, .footnote-marker, i.footnote, .mam-spi-pe, .mam-spi-samekh').forEach(n=>n.remove());
+      return _readerTmp.textContent.replace(/\s+/g,' ').trim();
+    }
+
     async function loadReaderChapter(){
       const body=$('reader-body'); body.innerHTML='<div class="reader-loading">Loading from Sefaria…</div>';
       const sRef = buildReaderRef();
@@ -1300,11 +1308,11 @@
         body.innerHTML='';
         const len = Math.max(heArr.length, enArr.length);
         for(let i=0;i<len;i++){
-          const he=String(heArr[i]||'').replace(/<[^>]*>/g,'').trim();
-          const en=String(enArr[i]||'').replace(/<[^>]*>/g,'').trim();
+          const he=cleanSefaria(heArr[i]);
+          const en=cleanSefaria(enArr[i]);
           if(!he && !en) continue;
           const v=document.createElement('div'); v.className='verse';
-          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${he}</div>`:''}${en?`<div class="en">${en}</div>`:''}</div>`;
+          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${escapeHtml(he)}</div>`:''}${en?`<div class="en">${escapeHtml(en)}</div>`:''}</div>`;
           body.appendChild(v);
         }
         body.scrollTop=0;
