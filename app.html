@@ -288,27 +288,47 @@
     .chat-send { background:var(--gold); color:#fff; border:none; border-radius:100px; padding:0 22px; font-weight:500; cursor:pointer; font-size:0.9rem; }
     .chat-send:hover { background:var(--gold-lt); }
 
-    /* ── Reader ── */
-    .reader-bg { position:fixed; inset:0; background:rgba(20,16,12,0.55); display:none; align-items:center; justify-content:center; z-index:260; padding:20px; }
+    /* ── Reader (full-screen study view) ── */
+    .reader-bg { position:fixed; inset:0; background:var(--cream); display:none; flex-direction:column; z-index:300; }
     .reader-bg.show { display:flex; }
-    .reader { background:var(--surface); border-radius:20px; width:100%; max-width:720px; max-height:88vh; display:flex; flex-direction:column; box-shadow:var(--shadow); overflow:hidden; }
-    .reader-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:20px 24px; border-bottom:1px solid var(--border); }
-    .reader-title { font-family:var(--serif); font-size:1.2rem; font-weight:600; }
-    .reader-sub { font-family:'Frank Ruhl Libre',serif; color:var(--gold); font-size:1.05rem; direction:rtl; margin-top:3px; }
-    .reader-head .rx { background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--ink-soft); flex-shrink:0; }
-    .reader-body { overflow-y:auto; padding:14px 24px; flex:1; }
-    .reader-loading { text-align:center; color:var(--ink-soft); padding:40px 14px; line-height:1.7; }
-    .verse { display:flex; gap:12px; padding:13px 0; border-bottom:1px solid var(--border-2); }
-    .vnum { font-size:0.7rem; color:var(--ink-mute); font-weight:600; min-width:22px; padding-top:8px; }
+    .reader { background:var(--cream); width:100%; height:100%; max-width:none; max-height:none; border-radius:0; display:flex; flex-direction:column; overflow:hidden; }
+    .reader-head { display:flex; align-items:center; gap:14px; padding:16px 26px; border-bottom:1px solid var(--border); background:var(--surface); flex-wrap:wrap; }
+    .reader-head .rh-titles { flex:1; min-width:160px; }
+    .reader-title { font-family:var(--serif); font-size:1.3rem; font-weight:600; }
+    .reader-sub { font-family:'Frank Ruhl Libre',serif; color:var(--gold); font-size:1.15rem; direction:rtl; margin-top:2px; }
+    .reader-tools { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .rtool { background:var(--cream-2); border:1px solid var(--border); border-radius:100px; padding:7px 13px; cursor:pointer; font-size:0.82rem; font-weight:600; color:var(--ink-soft); font-family:var(--sans); display:inline-flex; align-items:center; gap:5px; }
+    .rtool:hover { border-color:var(--gold); color:var(--gold); }
+    .rtool.active { background:var(--gold-bg); border-color:var(--gold); color:var(--gold); }
+    .reader-head .rx { background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--ink-soft); flex-shrink:0; line-height:1; padding:4px 8px; }
+    .reader-head .rx:hover { color:var(--ink); }
+    .reader-body { overflow-y:auto; padding:24px 26px 60px; flex:1; max-width:1100px; width:100%; margin:0 auto; }
+    .reader-loading { text-align:center; color:var(--ink-soft); padding:60px 14px; line-height:1.8; font-size:1.05rem; }
+    .verse { display:flex; gap:16px; padding:18px 0; border-bottom:1px solid var(--border-2); }
+    .vnum { font-size:0.75rem; color:var(--ink-mute); font-weight:700; min-width:26px; padding-top:6px; }
     .vtext { flex:1; min-width:0; }
-    .verse .he { font-family:'Frank Ruhl Libre',serif; font-size:1.3rem; font-weight:500; line-height:1.95; direction:rtl; text-align:right; color:var(--ink); margin-bottom:6px; }
-    .verse .en { font-size:0.92rem; line-height:1.6; color:var(--ink-soft); }
-    .reader-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:13px 20px; border-top:1px solid var(--border); }
-    .reader-nav button { background:var(--cream-2); border:1px solid var(--border); border-radius:100px; padding:9px 16px; cursor:pointer; font-size:0.85rem; font-weight:500; color:var(--ink-soft); font-family:var(--sans); }
-    .reader-nav button:hover { border-color:var(--gold); color:var(--gold); }
-    .reader-nav a { font-size:0.8rem; color:var(--ink-mute); text-decoration:none; }
+    .verse .he { font-family:'Frank Ruhl Libre',serif; font-size:calc(1.5rem * var(--rs,1)); font-weight:500; line-height:2.05; direction:rtl; text-align:right; color:var(--ink); margin-bottom:10px; }
+    .verse .en { font-size:calc(1.02rem * var(--rs,1)); line-height:1.7; color:var(--ink-soft); }
+    /* side-by-side mode */
+    .reader-body.side .vtext { display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:start; }
+    .reader-body.side .he { order:2; margin-bottom:0; }
+    .reader-body.side .en { order:1; padding-top:4px; }
+    /* hebrew-only / english-only modes */
+    .reader-body.he-only .en { display:none; }
+    .reader-body.en-only .he { display:none; }
+    .reader-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 26px; border-top:1px solid var(--border); background:var(--surface); }
+    .reader-nav button { background:var(--gold); color:#fff; border:none; border-radius:100px; padding:11px 22px; cursor:pointer; font-size:0.9rem; font-weight:600; font-family:var(--sans); }
+    .reader-nav button:hover { background:var(--gold-lt); }
+    .reader-nav button:disabled { opacity:0.4; cursor:default; }
+    .reader-nav a { font-size:0.82rem; color:var(--ink-mute); text-decoration:none; }
     .reader-nav a:hover { color:var(--gold); }
 
+    @media (max-width:760px) {
+      .reader-head { padding:12px 16px; }
+      .reader-body { padding:16px 16px 50px; }
+      .reader-body.side .vtext { grid-template-columns:1fr; gap:8px; }
+      .reader-title { font-size:1.1rem; }
+    }
     @media (max-width:760px) {
       .chat-wrap { grid-template-columns:1fr; }
       .chat-thread { min-height:auto; max-height:none; height:calc(100svh - 210px); }
@@ -374,8 +394,8 @@
         <div class="field"><label>Your City</label><input type="text" id="city" placeholder="e.g. Jerusalem, New York, London" /></div>
         <div class="field"><label>Learning Level</label><div class="chip-group" id="level-chips">
           <div class="chip" data-value="beginner">Beginner</div><div class="chip" data-value="intermediate">Intermediate</div><div class="chip" data-value="advanced">Advanced</div></div></div>
-        <div class="field"><label>Denomination</label><div class="chip-group" id="denom-chips">
-          <div class="chip" data-value="orthodox">Orthodox</div><div class="chip" data-value="conservative">Conservative</div><div class="chip" data-value="reform">Reform</div><div class="chip" data-value="traditional">Traditional</div><div class="chip" data-value="other">Other</div></div></div>
+        <div class="field"><label>Tradition (Nusach)</label><div class="chip-group" id="denom-chips">
+          <div class="chip" data-value="ashkenaz">Ashkenaz</div><div class="chip" data-value="sefard">Sefard</div><div class="chip" data-value="sefardi">Sefardi</div></div></div>
         <div class="field"><label>Learning Language</label><div class="chip-group" id="lang-chips">
           <div class="chip" data-value="hebrew">Hebrew</div><div class="chip" data-value="english">English</div><div class="chip" data-value="both">Both</div></div></div>
         <button class="submit-btn" id="save-btn">Save & start learning →</button>
@@ -534,8 +554,8 @@
             <div class="field"><label>About you</label><textarea id="set-bio" rows="3" placeholder="A line about what you love learning, who you are…"></textarea></div>
             <div class="field"><label>Learning Level</label><div class="chip-group" id="set-level-chips">
               <div class="chip" data-value="beginner">Beginner</div><div class="chip" data-value="intermediate">Intermediate</div><div class="chip" data-value="advanced">Advanced</div></div></div>
-            <div class="field"><label>Denomination</label><div class="chip-group" id="set-denom-chips">
-              <div class="chip" data-value="orthodox">Orthodox</div><div class="chip" data-value="conservative">Conservative</div><div class="chip" data-value="reform">Reform</div><div class="chip" data-value="traditional">Traditional</div><div class="chip" data-value="other">Other</div></div></div>
+            <div class="field"><label>Tradition (Nusach)</label><div class="chip-group" id="set-denom-chips">
+              <div class="chip" data-value="ashkenaz">Ashkenaz</div><div class="chip" data-value="sefard">Sefard</div><div class="chip" data-value="sefardi">Sefardi</div></div></div>
             <div class="field"><label>Learning Language</label><div class="chip-group" id="set-lang-chips">
               <div class="chip" data-value="hebrew">Hebrew</div><div class="chip" data-value="english">English</div><div class="chip" data-value="both">Both</div></div></div>
             <button class="submit-btn" id="save-settings-btn" style="margin-top:18px;">Save changes</button>
@@ -584,23 +604,31 @@
     </div>
   </div>
 
-  <!-- Sefaria Reader Modal -->
+  <!-- Sefaria Reader (full-screen study view) -->
   <div class="reader-bg" id="reader-modal">
     <div class="reader">
       <div class="reader-head">
-        <div>
+        <div class="rh-titles">
           <div class="reader-title" id="reader-title">—</div>
           <div class="reader-sub" id="reader-sub">—</div>
         </div>
-        <button class="rx" id="reader-close">✕</button>
+        <div class="reader-tools">
+          <button class="rtool" id="reader-layout" title="Side-by-side / stacked">⇄ Side by side</button>
+          <button class="rtool" data-lang="both" id="rlang-both">עברית + EN</button>
+          <button class="rtool" data-lang="he-only" id="rlang-he">עברית</button>
+          <button class="rtool" data-lang="en-only" id="rlang-en">English</button>
+          <button class="rtool" id="reader-smaller" title="Smaller text">A−</button>
+          <button class="rtool" id="reader-bigger" title="Larger text">A+</button>
+        </div>
+        <button class="rx" id="reader-close" title="Close">✕</button>
       </div>
       <div class="reader-body" id="reader-body">
         <div class="reader-loading">Loading text…</div>
       </div>
       <div class="reader-nav">
-        <button id="reader-prev">← Prev chapter</button>
-        <a id="reader-sefaria" href="#" target="_blank" rel="noopener">Open on Sefaria ↗</a>
-        <button id="reader-next">Next chapter →</button>
+        <button id="reader-prev">← Previous</button>
+        <a id="reader-sefaria" href="#" target="_blank" rel="noopener">View on Sefaria ↗</a>
+        <button id="reader-next">Next →</button>
       </div>
     </div>
   </div>
@@ -645,6 +673,30 @@
     };
     const isHeader = (s) => s.startsWith("—");
     const catEmoji = { tanach:"📖", parsha:"📜", gemara:"📚", mishna:"🕮", rambam:"✍️" };
+
+    /* Hebrew names for books / masechtot — shown alongside the English in the picker */
+    const HE_NAMES = {
+      // Torah
+      "Genesis":"בְּרֵאשִׁית","Exodus":"שְׁמוֹת","Leviticus":"וַיִּקְרָא","Numbers":"בְּמִדְבַּר","Deuteronomy":"דְּבָרִים",
+      // Nevi'im
+      "Joshua":"יְהוֹשֻׁעַ","Judges":"שׁוֹפְטִים","I Samuel":"שְׁמוּאֵל א׳","II Samuel":"שְׁמוּאֵל ב׳","I Kings":"מְלָכִים א׳","II Kings":"מְלָכִים ב׳",
+      "Isaiah":"יְשַׁעְיָהוּ","Jeremiah":"יִרְמְיָהוּ","Ezekiel":"יְחֶזְקֵאל","Hosea":"הוֹשֵׁעַ","Joel":"יוֹאֵל","Amos":"עָמוֹס","Obadiah":"עֹבַדְיָה",
+      "Jonah":"יוֹנָה","Micah":"מִיכָה","Nahum":"נַחוּם","Habakkuk":"חֲבַקּוּק","Zephaniah":"צְפַנְיָה","Haggai":"חַגַּי","Zechariah":"זְכַרְיָה","Malachi":"מַלְאָכִי",
+      // Ketuvim
+      "Psalms":"תְּהִלִּים","Proverbs":"מִשְׁלֵי","Job":"אִיּוֹב","Song of Songs":"שִׁיר הַשִּׁירִים","Ruth":"רוּת","Lamentations":"אֵיכָה",
+      "Ecclesiastes":"קֹהֶלֶת","Esther":"אֶסְתֵּר","Daniel":"דָּנִיֵּאל","Ezra":"עֶזְרָא","Nehemiah":"נְחֶמְיָה","I Chronicles":"דִּבְרֵי הַיָּמִים א׳","II Chronicles":"דִּבְרֵי הַיָּמִים ב׳",
+      // Masechtot (Gemara + Mishna)
+      "Berakhot":"בְּרָכוֹת","Shabbat":"שַׁבָּת","Eruvin":"עֵרוּבִין","Pesachim":"פְּסָחִים","Shekalim":"שְׁקָלִים","Rosh Hashanah":"רֹאשׁ הַשָּׁנָה",
+      "Yoma":"יוֹמָא","Sukkah":"סֻכָּה","Beitzah":"בֵּיצָה","Taanit":"תַּעֲנִית","Megillah":"מְגִילָּה","Moed Katan":"מוֹעֵד קָטָן","Chagigah":"חֲגִיגָה",
+      "Yevamot":"יְבָמוֹת","Ketubot":"כְּתוּבּוֹת","Nedarim":"נְדָרִים","Nazir":"נָזִיר","Sotah":"סוֹטָה","Gittin":"גִּיטִּין","Kiddushin":"קִידּוּשִׁין",
+      "Bava Kamma":"בָּבָא קַמָּא","Bava Metzia":"בָּבָא מְצִיעָא","Bava Batra":"בָּבָא בַּתְרָא","Sanhedrin":"סַנְהֶדְרִין","Makkot":"מַכּוֹת","Shevuot":"שְׁבוּעוֹת",
+      "Eduyot":"עֵדוּיּוֹת","Avodah Zarah":"עֲבוֹדָה זָרָה","Avot":"אָבוֹת","Horayot":"הוֹרָיוֹת","Zevachim":"זְבָחִים","Menachot":"מְנָחוֹת","Chullin":"חוּלִּין",
+      "Bekhorot":"בְּכוֹרוֹת","Arakhin":"עֲרָכִין","Temurah":"תְּמוּרָה","Keritot":"כְּרִיתוֹת","Meilah":"מְעִילָה","Tamid":"תָּמִיד","Middot":"מִדּוֹת","Kinnim":"קִינִּים","Niddah":"נִדָּה",
+      "Peah":"פֵּאָה","Demai":"דְּמַאי","Kilayim":"כִּלְאַיִם","Sheviit":"שְׁבִיעִית","Terumot":"תְּרוּמוֹת","Maasrot":"מַעַשְׂרוֹת","Maaser Sheni":"מַעֲשֵׂר שֵׁנִי",
+      "Challah":"חַלָּה","Orlah":"עׇרְלָה","Bikkurim":"בִּכּוּרִים","Kelim":"כֵּלִים","Oholot":"אֹהָלוֹת","Negaim":"נְגָעִים","Parah":"פָּרָה","Tahorot":"טׇהֳרוֹת",
+      "Mikvaot":"מִקְוָאוֹת","Makhshirin":"מַכְשִׁירִין","Zavim":"זָבִים","Tevul Yom":"טְבוּל יוֹם","Yadayim":"יָדַיִם","Oktzin":"עוּקְצִין"
+    };
+    const bookLabelText = (b) => HE_NAMES[b] ? `${HE_NAMES[b]} · ${b}` : b;
 
     /* ═══════════ State ═══════════ */
     let currentUser = null, profile = null;
@@ -693,7 +745,7 @@
     function populateBooks(){
       const cat=LIBRARY[categorySel.value];
       bookLabel.textContent=cat.bookLabel; bookSel.innerHTML='';
-      cat.books.forEach(b=>{ const o=document.createElement('option'); o.value=isHeader(b)?'':b; o.textContent=b; if(isHeader(b)){o.disabled=true;o.style.color='#b0a090';} bookSel.appendChild(o); });
+      cat.books.forEach(b=>{ const o=document.createElement('option'); o.value=isHeader(b)?'':b; o.textContent=isHeader(b)?b:bookLabelText(b); if(isHeader(b)){o.disabled=true;o.style.color='#b0a090';} bookSel.appendChild(o); });
       bookSel.value=cat.books.find(b=>!isHeader(b))||'';
       locationLbl.textContent=cat.locationLabel; locationInp.value=''; locationInp.placeholder=cat.placeholder; updatePreview();
     }
@@ -1265,13 +1317,39 @@
     function openReader(book, loc, cat){
       readerBook=book; readerCategory=cat||'tanach'; readerPos=parseReaderPos(loc);
       $('reader-modal').classList.add('show');
+      applyReaderPrefs();
       loadReaderChapter();
     }
+    function closeReader(){ $('reader-modal').classList.remove('show'); }
 
-    $('reader-close').addEventListener('click',()=>$('reader-modal').classList.remove('show'));
-    $('reader-modal').addEventListener('click',(e)=>{ if(e.target.id==='reader-modal')$('reader-modal').classList.remove('show'); });
+    /* Reader preferences (persisted) */
+    let readerScale = parseFloat(localStorage.getItem('pitom_reader_scale')) || 1;
+    let readerLayout = localStorage.getItem('pitom_reader_layout') || 'side'; // 'side' | 'stack'
+    let readerLang = localStorage.getItem('pitom_reader_lang') || 'both';     // 'both' | 'he-only' | 'en-only'
+    function applyReaderPrefs(){
+      const body=$('reader-body');
+      body.style.setProperty('--rs', readerScale);
+      body.classList.toggle('side', readerLayout==='side');
+      body.classList.remove('he-only','en-only');
+      if(readerLang!=='both') body.classList.add(readerLang);
+      $('reader-layout').classList.toggle('active', readerLayout==='side');
+      $('reader-layout').textContent = readerLayout==='side' ? '⇄ Side by side' : '≡ Stacked';
+      ['both','he','en'].forEach(k=>{ const id={both:'rlang-both',he:'rlang-he',en:'rlang-en'}[k]; const val={both:'both',he:'he-only',en:'en-only'}[k]; $(id).classList.toggle('active', readerLang===val); });
+    }
+    function saveReaderPrefs(){
+      localStorage.setItem('pitom_reader_scale', readerScale);
+      localStorage.setItem('pitom_reader_layout', readerLayout);
+      localStorage.setItem('pitom_reader_lang', readerLang);
+    }
+
+    $('reader-close').addEventListener('click', closeReader);
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && $('reader-modal').classList.contains('show')) closeReader(); });
     $('reader-prev').addEventListener('click',()=>{ if(readerPos>readerMinPos()){ readerPos--; loadReaderChapter(); }});
     $('reader-next').addEventListener('click',()=>{ readerPos++; loadReaderChapter(); });
+    $('reader-layout').addEventListener('click',()=>{ readerLayout = readerLayout==='side'?'stack':'side'; applyReaderPrefs(); saveReaderPrefs(); });
+    $('reader-bigger').addEventListener('click',()=>{ readerScale=Math.min(2,readerScale+0.12); applyReaderPrefs(); saveReaderPrefs(); });
+    $('reader-smaller').addEventListener('click',()=>{ readerScale=Math.max(0.7,readerScale-0.12); applyReaderPrefs(); saveReaderPrefs(); });
+    document.querySelectorAll('.rtool[data-lang]').forEach(b=>b.addEventListener('click',()=>{ readerLang=b.dataset.lang; applyReaderPrefs(); saveReaderPrefs(); }));
 
     $('read-text-btn').addEventListener('click',()=>{
       const book=bookSel.value;
