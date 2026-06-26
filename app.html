@@ -310,8 +310,8 @@
     .verse .he { font-family:'Frank Ruhl Libre',serif; font-size:calc(1.5rem * var(--rs,1)); font-weight:500; line-height:2.05; direction:rtl; text-align:right; color:var(--ink); margin-bottom:10px; }
     .verse .en { font-size:calc(1.02rem * var(--rs,1)); line-height:1.7; color:var(--ink-mute); }
     .verse .en b, .verse .en strong { font-weight:700; color:var(--ink); }
-    .verse .he b, .verse .he strong { font-weight:700; color:var(--ink); }
-    .verse .he { color:var(--ink-soft); }
+    .verse .he b, .verse .he strong { font-weight:700; }
+    .verse .he { color:var(--ink); }
     /* side-by-side mode */
     .reader-body.side .vtext { display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:start; }
     .reader-body.side .he { order:2; margin-bottom:0; }
@@ -620,6 +620,7 @@
           <button class="rtool" data-lang="both" id="rlang-both">עברית + EN</button>
           <button class="rtool" data-lang="he-only" id="rlang-he">עברית</button>
           <button class="rtool" data-lang="en-only" id="rlang-en">English</button>
+          <button class="rtool" id="reader-taamim" title="Show/hide cantillation (trop) marks">טַעֲמִים</button>
           <button class="rtool" id="reader-smaller" title="Smaller text">A−</button>
           <button class="rtool" id="reader-bigger" title="Larger text">A+</button>
         </div>
@@ -1318,8 +1319,9 @@
         body.innerHTML='';
         const len = Math.max(heArr.length, enArr.length);
         for(let i=0;i<len;i++){
-          const he=cleanSefaria(heArr[i]);
+          let he=cleanSefaria(heArr[i]);
           const en=cleanSefaria(enArr[i]);
+          if(!readerTaamim) he=stripTaamim(he);
           if(!he && !en) continue;
           const v=document.createElement('div'); v.className='verse';
           v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${he}</div>`:''}${en?`<div class="en">${en}</div>`:''}</div>`;
@@ -1344,6 +1346,7 @@
     let readerScale = parseFloat(localStorage.getItem('pitom_reader_scale')) || 1;
     let readerLayout = localStorage.getItem('pitom_reader_layout') || 'side'; // 'side' | 'stack'
     let readerLang = localStorage.getItem('pitom_reader_lang') || 'both';     // 'both' | 'he-only' | 'en-only'
+    let readerTaamim = localStorage.getItem('pitom_reader_taamim') !== 'off';  // show cantillation marks
     function applyReaderPrefs(){
       const body=$('reader-body');
       body.style.setProperty('--rs', readerScale);
@@ -1352,19 +1355,24 @@
       if(readerLang!=='both') body.classList.add(readerLang);
       $('reader-layout').classList.toggle('active', readerLayout==='side');
       $('reader-layout').textContent = readerLayout==='side' ? '⇄ Side by side' : '≡ Stacked';
+      $('reader-taamim').classList.toggle('active', readerTaamim);
       ['both','he','en'].forEach(k=>{ const id={both:'rlang-both',he:'rlang-he',en:'rlang-en'}[k]; const val={both:'both',he:'he-only',en:'en-only'}[k]; $(id).classList.toggle('active', readerLang===val); });
     }
     function saveReaderPrefs(){
       localStorage.setItem('pitom_reader_scale', readerScale);
       localStorage.setItem('pitom_reader_layout', readerLayout);
       localStorage.setItem('pitom_reader_lang', readerLang);
+      localStorage.setItem('pitom_reader_taamim', readerTaamim ? 'on' : 'off');
     }
+    // Remove cantillation (trop) marks but keep vowels/nikud
+    function stripTaamim(s){ return s.replace(/[֑-֯]/g,''); }
 
     $('reader-close').addEventListener('click', closeReader);
     document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && $('reader-modal').classList.contains('show')) closeReader(); });
     $('reader-prev').addEventListener('click',()=>{ if(readerPos>readerMinPos()){ readerPos--; loadReaderChapter(); }});
     $('reader-next').addEventListener('click',()=>{ readerPos++; loadReaderChapter(); });
     $('reader-layout').addEventListener('click',()=>{ readerLayout = readerLayout==='side'?'stack':'side'; applyReaderPrefs(); saveReaderPrefs(); });
+    $('reader-taamim').addEventListener('click',()=>{ readerTaamim = !readerTaamim; applyReaderPrefs(); saveReaderPrefs(); loadReaderChapter(); });
     $('reader-bigger').addEventListener('click',()=>{ readerScale=Math.min(2,readerScale+0.12); applyReaderPrefs(); saveReaderPrefs(); });
     $('reader-smaller').addEventListener('click',()=>{ readerScale=Math.max(0.7,readerScale-0.12); applyReaderPrefs(); saveReaderPrefs(); });
     document.querySelectorAll('.rtool[data-lang]').forEach(b=>b.addEventListener('click',()=>{ readerLang=b.dataset.lang; applyReaderPrefs(); saveReaderPrefs(); }));
