@@ -1103,11 +1103,12 @@
       if(msgUnsubscribe) msgUnsubscribe();
       const msgEl=$('chat-messages'); msgEl.innerHTML='';
       msgUnsubscribe = onSnapshot(
-        query(collection(db,'conversations',cid,'messages'), where('sentAt','!=',null)),
+        collection(db,'conversations',cid,'messages'),
         (snap) => {
-          const msgs = snap.docs.map(d=>d.data()).sort((a,b)=>(a.sentAt?.toMillis?.()||0)-(b.sentAt?.toMillis?.()||0));
+          const msgs = snap.docs.map(d=>d.data()).sort((a,b)=>(a.sentAt?.toMillis?.()||Date.now())-(b.sentAt?.toMillis?.()||Date.now()));
           renderMessages(msgs);
-        }
+        },
+        (e)=>{ console.error('messages listener:',e); toast('Chat needs the conversations Firestore rule.'); }
       );
     }
 
@@ -1128,9 +1129,10 @@
       const otherId = activeConvId.split('_').find(u=>u!==currentUser.uid);
       try{
         await addDoc(collection(db,'conversations',activeConvId,'messages'),{ from:currentUser.uid, text, sentAt:serverTimestamp() });
+        const prev = (await getDoc(doc(db,'conversations',activeConvId))).data()?.unread?.[otherId] || 0;
         await updateDoc(doc(db,'conversations',activeConvId),{
           lastMsg: text, lastAt: serverTimestamp(),
-          [`unread.${otherId}`]: (await getDoc(doc(db,'conversations',activeConvId))).data()?.unread?.[otherId]||0 + 1
+          [`unread.${otherId}`]: prev + 1
         });
       }catch(e){ console.error(e); toast('Failed to send.'); }
     }
