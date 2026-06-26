@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pitom — Learn Live</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -262,6 +262,62 @@
     .switch input:checked + .slider { background: var(--gold); border-color: var(--gold); }
     .switch input:checked + .slider::before { transform: translateX(20px); }
 
+    /* ── Chat ── */
+    .chat-wrap { display:grid; grid-template-columns:300px 1fr; gap:18px; align-items:stretch; }
+    .chat-list { padding:16px; max-height:72vh; overflow-y:auto; }
+    .chat-thread { padding:0; overflow:hidden; display:flex; flex-direction:column; max-height:72vh; min-height:440px; }
+    .chat-li { display:flex; align-items:center; gap:11px; width:100%; text-align:left; background:none; border:none; border-radius:12px; padding:10px; cursor:pointer; font-family:var(--sans); }
+    .chat-li:hover { background:var(--cream-2); }
+    .chat-li.active { background:var(--gold-bg); }
+    .chat-li-info, .chat-li-body { min-width:0; flex:1; }
+    .chat-li-name { font-size:0.88rem; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:6px; }
+    .chat-li-last { font-size:0.76rem; color:var(--ink-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .chat-unread { background:var(--gold); color:#fff; font-size:0.68rem; font-weight:700; border-radius:100px; padding:1px 6px; margin-left:auto; flex-shrink:0; }
+    .unread-dot { width:9px; height:9px; border-radius:50%; background:var(--gold); flex-shrink:0; }
+    .chat-placeholder { display:flex; align-items:center; justify-content:center; height:100%; min-height:440px; color:var(--ink-mute); font-size:0.92rem; text-align:center; padding:20px; }
+    .chat-thread-head { display:flex; align-items:center; gap:11px; padding:15px 18px; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .chat-back { display:none; background:none; border:none; cursor:pointer; font-size:1.3rem; color:var(--ink-soft); padding:0 4px 0 0; }
+    .chat-messages { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:7px; }
+    .msg { display:flex; }
+    .msg.me { justify-content:flex-end; }
+    .msg .bubble { max-width:76%; padding:9px 14px; border-radius:16px; font-size:0.9rem; line-height:1.4; word-wrap:break-word; white-space:pre-wrap; }
+    .msg.them .bubble { background:var(--cream-2); color:var(--ink); border-bottom-left-radius:5px; }
+    .msg.me .bubble { background:var(--gold); color:#fff; border-bottom-right-radius:5px; }
+    .chat-input { display:flex; gap:10px; padding:13px 16px; border-top:1px solid var(--border); flex-shrink:0; }
+    .chat-input input { border-radius:100px; }
+    .chat-send { background:var(--gold); color:#fff; border:none; border-radius:100px; padding:0 22px; font-weight:500; cursor:pointer; font-size:0.9rem; }
+    .chat-send:hover { background:var(--gold-lt); }
+
+    /* ── Reader ── */
+    .reader-bg { position:fixed; inset:0; background:rgba(20,16,12,0.55); display:none; align-items:center; justify-content:center; z-index:260; padding:20px; }
+    .reader-bg.show { display:flex; }
+    .reader { background:var(--surface); border-radius:20px; width:100%; max-width:720px; max-height:88vh; display:flex; flex-direction:column; box-shadow:var(--shadow); overflow:hidden; }
+    .reader-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:20px 24px; border-bottom:1px solid var(--border); }
+    .reader-title { font-family:var(--serif); font-size:1.2rem; font-weight:600; }
+    .reader-sub { font-family:'Frank Ruhl Libre',serif; color:var(--gold); font-size:1.05rem; direction:rtl; margin-top:3px; }
+    .reader-head .rx { background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--ink-soft); flex-shrink:0; }
+    .reader-body { overflow-y:auto; padding:14px 24px; flex:1; }
+    .reader-loading { text-align:center; color:var(--ink-soft); padding:40px 14px; line-height:1.7; }
+    .verse { display:flex; gap:12px; padding:13px 0; border-bottom:1px solid var(--border-2); }
+    .vnum { font-size:0.7rem; color:var(--ink-mute); font-weight:600; min-width:22px; padding-top:8px; }
+    .vtext { flex:1; min-width:0; }
+    .verse .he { font-family:'Frank Ruhl Libre',serif; font-size:1.3rem; font-weight:500; line-height:1.95; direction:rtl; text-align:right; color:var(--ink); margin-bottom:6px; }
+    .verse .en { font-size:0.92rem; line-height:1.6; color:var(--ink-soft); }
+    .reader-nav { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:13px 20px; border-top:1px solid var(--border); }
+    .reader-nav button { background:var(--cream-2); border:1px solid var(--border); border-radius:100px; padding:9px 16px; cursor:pointer; font-size:0.85rem; font-weight:500; color:var(--ink-soft); font-family:var(--sans); }
+    .reader-nav button:hover { border-color:var(--gold); color:var(--gold); }
+    .reader-nav a { font-size:0.8rem; color:var(--ink-mute); text-decoration:none; }
+    .reader-nav a:hover { color:var(--gold); }
+
+    @media (max-width:760px) {
+      .chat-wrap { grid-template-columns:1fr; }
+      .chat-thread { min-height:auto; max-height:none; height:calc(100svh - 210px); }
+      .chat-placeholder { display:none; }
+      .chat-wrap.thread-open .chat-list { display:none; }
+      .chat-wrap:not(.thread-open) .chat-thread { display:none; }
+      .chat-back { display:inline-block; }
+    }
+
     /* ── Mobile tabs ── */
     .mobile-tabs { display: none; }
     @media (max-width: 760px) {
@@ -339,6 +395,9 @@
         <button class="nav-item" data-view="friends">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0111 0"/><path d="M16 5.2a3.2 3.2 0 010 5.6M17.5 19a5.5 5.5 0 00-2-4.3"/></svg>
           Friends <span class="nav-badge" id="badge-friends">0</span></button>
+        <button class="nav-item" data-view="messages">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 01-9 8.4L3 21l1.1-3.3A8.4 8.4 0 1121 11.5z"/></svg>
+          Messages <span class="nav-badge" id="badge-messages">0</span></button>
         <button class="nav-item" data-view="discover">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.5-3.5"/></svg>
           Discover</button>
@@ -377,7 +436,10 @@
               <div class="field" id="location-field"><label id="location-label">Location</label><input type="text" id="location" placeholder="" autocomplete="off" /></div>
               <div class="ref-preview row-between">
                 <div>Right now I'm learning:<strong id="ref-preview">—</strong></div>
-                <button class="star-btn" id="bookmark-btn" title="Save this text">☆ Save</button>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button class="star-btn" id="read-text-btn" title="Read this text" style="background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold);border-radius:100px;padding:5px 13px;font-size:0.8rem;font-weight:600;cursor:pointer;">📖 Read</button>
+                  <button class="star-btn" id="bookmark-btn" title="Save this text">☆ Save</button>
+                </div>
               </div>
               <button class="go-btn" id="go-btn">Go live →</button>
             </div>
@@ -410,6 +472,29 @@
           <div class="panel" id="sent-panel" style="display:none; margin-top:22px;">
             <div class="panel-title">Pending sent requests</div>
             <div class="list" id="sent-list" style="margin-top:14px;"></div>
+          </div>
+        </section>
+
+        <!-- ───── MESSAGES ───── -->
+        <section class="view" id="view-messages">
+          <div class="view-head"><h1>Messages</h1><p>Text your chavrutas — set up sessions, talk learning, stay in touch.</p></div>
+          <div class="chat-wrap">
+            <div class="chat-list panel">
+              <div class="panel-title" style="margin-bottom:12px;">Conversations</div>
+              <div class="list" id="chat-list-inner"><div class="empty"><p>No conversations yet.<br><span class="em">Message a friend to start.</span></p></div></div>
+            </div>
+            <div class="chat-thread panel">
+              <div id="thread-placeholder" class="chat-placeholder">Select a conversation to start chatting 💬</div>
+              <div id="thread-content" style="display:none; flex-direction:column; height:100%;">
+                <div class="chat-thread-head">
+                  <button class="chat-back" id="chat-back">←</button>
+                  <div class="avatar sm" id="thread-avatar">?</div>
+                  <div class="chat-li-name" id="thread-name">Friend</div>
+                </div>
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input"><input type="text" id="chat-input-text" placeholder="Type a message…" autocomplete="off" /><button class="chat-send" id="chat-send">Send</button></div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -477,6 +562,7 @@
     <nav class="mobile-tabs">
       <button class="mtab active" data-view="learn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5V6a2 2 0 012-2h13v15H6a2 2 0 00-2 2z"/><path d="M19 4v15"/></svg>Learn</button>
       <button class="mtab" data-view="friends"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0111 0"/></svg>Friends<span class="nav-badge" id="badge-friends-m">0</span></button>
+      <button class="mtab" data-view="messages"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 01-9 8.4L3 21l1.1-3.3A8.4 8.4 0 1121 11.5z"/></svg>Chat<span class="nav-badge" id="badge-messages-m">0</span></button>
       <button class="mtab" data-view="discover"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.5-3.5"/></svg>Discover</button>
       <button class="mtab" data-view="activity"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17l5-5 4 4 8-8"/></svg>Activity</button>
       <button class="mtab" data-view="settings"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 000-2l1.7-1.3-1.9-3.3-2 .8a7.3 7.3 0 00-1.7-1l-.3-2.1H10.5l-.3 2.1a7.3 7.3 0 00-1.7 1l-2-.8L4.6 9.7 6.3 11a7.6 7.6 0 000 2l-1.7 1.3 1.9 3.3 2-.8a7.3 7.3 0 001.7 1l.3 2.1h3.8l.3-2.1a7.3 7.3 0 001.7-1l2 .8 1.9-3.3z"/></svg>Settings</button>
@@ -492,7 +578,29 @@
       <p class="muted" id="jm-note">Live video chavruta is coming with the Pitom app. For now, add them as a friend so you're ready to learn together the moment it launches.</p>
       <div class="modal-actions">
         <button class="btn-out" id="jm-close" style="border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);">Close</button>
+        <button class="btn-out" id="jm-msg" style="border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);">Message</button>
         <button class="btn-gold" id="jm-add" style="background:var(--gold);color:#fff;">Add friend</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sefaria Reader Modal -->
+  <div class="reader-bg" id="reader-modal">
+    <div class="reader">
+      <div class="reader-head">
+        <div>
+          <div class="reader-title" id="reader-title">—</div>
+          <div class="reader-sub" id="reader-sub">—</div>
+        </div>
+        <button class="rx" id="reader-close">✕</button>
+      </div>
+      <div class="reader-body" id="reader-body">
+        <div class="reader-loading">Loading text…</div>
+      </div>
+      <div class="reader-nav">
+        <button id="reader-prev">← Prev chapter</button>
+        <a id="reader-sefaria" href="#" target="_blank" rel="noopener">Open on Sefaria ↗</a>
+        <button id="reader-next">Next chapter →</button>
       </div>
     </div>
   </div>
@@ -737,8 +845,9 @@
           const meta=[info.city&&escapeHtml(info.city), info.level&&cap(info.level)].filter(Boolean).join(' · ');
           const learning = online ? `<span class="user-topic">${escapeHtml(pres.ref)}</span>` : '<span class="user-meta">Offline</span>';
           const join = online ? `<button class="btn-sm btn-gold join-one">Join</button>` : '';
-          row.innerHTML=`${avatarHtml(info.name,info.photoURL,'',online)}<div class="user-info"><div class="user-name">${escapeHtml(info.name||'Friend')} ${online?'<span class="badge-pill badge-green">Live</span>':''}</div><div class="user-meta">${meta?`<span>${meta}</span><span>·</span>`:''}${learning}</div></div><div class="row-actions">${join}<button class="btn-sm btn-danger rm">Remove</button></div>`;
+          row.innerHTML=`${avatarHtml(info.name,info.photoURL,'',online)}<div class="user-info"><div class="user-name">${escapeHtml(info.name||'Friend')} ${online?'<span class="badge-pill badge-green">Live</span>':''}</div><div class="user-meta">${meta?`<span>${meta}</span><span>·</span>`:''}${learning}</div></div><div class="row-actions">${join}<button class="btn-sm btn-out msg-one">💬</button><button class="btn-sm btn-danger rm">Remove</button></div>`;
           if(online) row.querySelector('.join-one')?.addEventListener('click',()=>openJoin(pres));
+          row.querySelector('.msg-one').addEventListener('click',()=>startChat(uid, info.name||'Friend', info.photoURL||''));
           row.querySelector('.rm').addEventListener('click',()=>removeFriend(uid));
           fl.appendChild(row);
         });
@@ -779,10 +888,12 @@
         else if(st==='requested') btn='<button class="btn-sm btn-out cancel">Requested</button>';
         else if(st==='incoming') btn='<button class="btn-sm btn-gold accept-disc">Accept</button>';
         else btn='<button class="btn-sm btn-gold add">Add friend</button>';
-        row.innerHTML=`${avatarHtml(u.name,u.photoURL,'',online)}<div class="user-info"><div class="user-name">${escapeHtml(u.name||'Learner')} ${online?'<span class="badge-pill badge-green">Live</span>':''}</div><div class="user-meta">${meta?`<span>${meta}</span>`:''}${learning?`<span>·</span>${learning}`:''}</div></div><div class="row-actions">${btn}</div>`;
+        const msgBtn = st==='friends' ? `<button class="btn-sm btn-out disc-msg">💬</button>` : '';
+        row.innerHTML=`${avatarHtml(u.name,u.photoURL,'',online)}<div class="user-info"><div class="user-name">${escapeHtml(u.name||'Learner')} ${online?'<span class="badge-pill badge-green">Live</span>':''}</div><div class="user-meta">${meta?`<span>${meta}</span>`:''}${learning?`<span>·</span>${learning}`:''}</div></div><div class="row-actions">${msgBtn}${btn}</div>`;
         if(st==='none') row.querySelector('.add').addEventListener('click',()=>sendRequest(u));
         else if(st==='requested') row.querySelector('.cancel').addEventListener('click',()=>cancelRequest(u.uid));
         else if(st==='incoming') row.querySelector('.accept-disc').addEventListener('click',()=>{ const r=incomingReqs.find(x=>x.from===u.uid); if(r)acceptRequest(r); });
+        if(st==='friends') row.querySelector('.disc-msg').addEventListener('click',()=>startChat(u.uid, u.name||'Learner', u.photoURL||''));
         dl.appendChild(row);
       });
     }
@@ -919,16 +1030,7 @@
       updateMiniUser(); fillSettings(); loadBookmarks(); startListeners();
     }
 
-    /* ═══════════ Firestore listeners ═══════════ */
-    function startListeners(){
-      if(listenersStarted)return; listenersStarted=true;
-      onSnapshot(collection(db,'presence'),(s)=>{ presenceList=s.docs.map(d=>d.data()); renderLearnFeed(); renderFriends(); renderDiscover(); },(e)=>{ console.error(e); toast('Live feed needs the Firestore rules published.'); });
-      onSnapshot(query(collection(db,'friendRequests'),where('to','==',currentUser.uid)),(s)=>{ incomingReqs=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
-      onSnapshot(query(collection(db,'friendRequests'),where('from','==',currentUser.uid)),(s)=>{ outgoingReqs=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
-      onSnapshot(query(collection(db,'friends'),where('users','array-contains',currentUser.uid)),(s)=>{ friendsList=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
-      onSnapshot(collection(db,'users'),(s)=>{ allUsers=s.docs.map(d=>d.data()); renderDiscover(); },(e)=>console.error(e));
-      onSnapshot(collection(db,'users',currentUser.uid,'sessions'),(s)=>{ sessionsList=s.docs.map(d=>d.data()); renderActivity(); },(e)=>console.error(e));
-    }
+    /* ═══════════ Firestore listeners ═══════════ (defined later, after chat JS) */
 
     /* ═══════════ Auth gate ═══════════ */
     onAuthStateChanged(auth,async(user)=>{
@@ -940,6 +1042,226 @@
         else showProfile(user);
       }catch(e){ console.error(e); showProfile(user); }
     });
+
+    /* ═══════════ CHAT / MESSAGES ═══════════ */
+    let chatUnsubscribe = null, activeConvId = null, msgUnsubscribe = null;
+    let unreadCounts = {};
+
+    function convId(uid1, uid2){ return [uid1,uid2].sort().join('_'); }
+
+    function startChatListeners(){
+      if(!currentUser) return;
+      onSnapshot(
+        query(collection(db,'conversations'), where('users','array-contains',currentUser.uid)),
+        (snap) => {
+          const convs = snap.docs.map(d=>({id:d.id,...d.data()}));
+          renderChatList(convs);
+        },
+        (e) => console.error('conversations listener:',e)
+      );
+    }
+
+    function renderChatList(convs){
+      const el = $('chat-list-inner');
+      if(!convs.length){ el.innerHTML='<div class="empty"><p>No conversations yet.<br><span class="em">Message a friend to start.</span></p></div>'; updateMsgBadge(0); return; }
+      convs.sort((a,b)=>(b.lastAt?.toMillis?.()||0)-(a.lastAt?.toMillis?.()||0));
+      el.innerHTML='';
+      let totalUnread=0;
+      convs.forEach(c=>{
+        const otherId = c.users.find(u=>u!==currentUser.uid);
+        const info = (c.info&&c.info[otherId])||{};
+        const unread = (c.unread&&c.unread[currentUser.uid])||0;
+        totalUnread+=unread;
+        const li=document.createElement('div'); li.className='chat-li'+(activeConvId===c.id?' active':'');
+        li.innerHTML=`${avatarHtml(info.name,info.photoURL,'sm')}
+          <div class="chat-li-body">
+            <div class="chat-li-name">${escapeHtml(info.name||'Friend')}${unread>0?`<span class="chat-unread">${unread}</span>`:''}</div>
+            <div class="chat-li-last">${escapeHtml(c.lastMsg||'')}</div>
+          </div>`;
+        li.addEventListener('click',()=>openThread(c.id, otherId, info));
+        el.appendChild(li);
+      });
+      updateMsgBadge(totalUnread);
+    }
+
+    function updateMsgBadge(n){
+      ['badge-messages','badge-messages-m'].forEach(id=>{ const b=$(id); if(!b)return; b.textContent=n; b.classList.toggle('show',n>0); });
+    }
+
+    async function openThread(cid, otherId, info){
+      activeConvId = cid;
+      $('chat-wrap')?.classList.add('thread-open');
+      document.querySelector('.chat-wrap')?.classList.add('thread-open');
+      $('thread-avatar').innerHTML = info.photoURL?`<img src="${escapeHtml(info.photoURL)}" referrerpolicy="no-referrer">`:(info.name||'?').charAt(0).toUpperCase();
+      $('thread-name').textContent = info.name||'Friend';
+      $('thread-placeholder').style.display='none';
+      $('thread-content').style.display='flex';
+
+      // mark read
+      try{ await updateDoc(doc(db,'conversations',cid),{[`unread.${currentUser.uid}`]:0}); }catch(e){}
+
+      if(msgUnsubscribe) msgUnsubscribe();
+      const msgEl=$('chat-messages'); msgEl.innerHTML='';
+      msgUnsubscribe = onSnapshot(
+        query(collection(db,'conversations',cid,'messages'), where('sentAt','!=',null)),
+        (snap) => {
+          const msgs = snap.docs.map(d=>d.data()).sort((a,b)=>(a.sentAt?.toMillis?.()||0)-(b.sentAt?.toMillis?.()||0));
+          renderMessages(msgs);
+        }
+      );
+    }
+
+    function renderMessages(msgs){
+      const el=$('chat-messages'); el.innerHTML='';
+      msgs.forEach(m=>{
+        const isMe=m.from===currentUser.uid;
+        const div=document.createElement('div'); div.className=`msg ${isMe?'me':'them'}`;
+        div.innerHTML=`<div class="bubble">${escapeHtml(m.text)}</div>`;
+        el.appendChild(div);
+      });
+      el.scrollTop=el.scrollHeight;
+    }
+
+    async function sendMessage(){
+      const inp=$('chat-input-text'); const text=inp.value.trim(); if(!text||!activeConvId) return;
+      inp.value='';
+      const otherId = activeConvId.split('_').find(u=>u!==currentUser.uid);
+      try{
+        await addDoc(collection(db,'conversations',activeConvId,'messages'),{ from:currentUser.uid, text, sentAt:serverTimestamp() });
+        await updateDoc(doc(db,'conversations',activeConvId),{
+          lastMsg: text, lastAt: serverTimestamp(),
+          [`unread.${otherId}`]: (await getDoc(doc(db,'conversations',activeConvId))).data()?.unread?.[otherId]||0 + 1
+        });
+      }catch(e){ console.error(e); toast('Failed to send.'); }
+    }
+
+    $('chat-send').addEventListener('click', sendMessage);
+    $('chat-input-text').addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); }});
+    $('chat-back').addEventListener('click',()=>{
+      document.querySelector('.chat-wrap')?.classList.remove('thread-open');
+      $('thread-placeholder').style.display='';
+      $('thread-content').style.display='none';
+      if(msgUnsubscribe){ msgUnsubscribe(); msgUnsubscribe=null; }
+      activeConvId=null;
+    });
+
+    async function startChat(uid, name, photoURL){
+      if(!currentUser) return;
+      const cid = convId(currentUser.uid, uid);
+      const ref = doc(db,'conversations',cid);
+      const snap = await getDoc(ref);
+      if(!snap.exists()){
+        await setDoc(ref,{
+          users:[currentUser.uid,uid],
+          info:{
+            [currentUser.uid]:{ name:profile?.name||currentUser.displayName||'', photoURL:currentUser.photoURL||'' },
+            [uid]:{ name, photoURL:photoURL||'' }
+          },
+          lastMsg:'', lastAt:serverTimestamp(),
+          unread:{ [currentUser.uid]:0, [uid]:0 }
+        });
+      }
+      switchView('messages');
+      setTimeout(()=>openThread(cid,uid,{name,photoURL}),300);
+    }
+
+    /* ═══════════ Message buttons wiring ═══════════ */
+    // Join modal Message button
+    $('jm-msg').addEventListener('click',()=>{
+      if(!joinTarget) return;
+      $('join-modal').classList.remove('show');
+      startChat(joinTarget.uid, joinTarget.name||'Friend', joinTarget.photoURL||'');
+    });
+
+    /* ═══════════ SEFARIA TEXT READER ═══════════ */
+    let readerRef = null, readerBook = null, readerChapter = 1, readerCategory = null;
+
+    const SEFARIA_BOOK_MAP = {
+      'Genesis':'Genesis','Exodus':'Exodus','Leviticus':'Leviticus','Numbers':'Numbers','Deuteronomy':'Deuteronomy',
+      'Joshua':'Joshua','Judges':'Judges','I Samuel':'I Samuel','II Samuel':'II Samuel','I Kings':'I Kings','II Kings':'II Kings',
+      'Isaiah':'Isaiah','Jeremiah':'Jeremiah','Ezekiel':'Ezekiel','Hosea':'Hosea','Joel':'Joel','Amos':'Amos',
+      'Obadiah':'Obadiah','Jonah':'Jonah','Micah':'Micah','Nahum':'Nahum','Habakkuk':'Habakkuk',
+      'Zephaniah':'Zephaniah','Haggai':'Haggai','Zechariah':'Zechariah','Malachi':'Malachi',
+      'Psalms':'Psalms','Proverbs':'Proverbs','Job':'Job','Song of Songs':'Song of Songs','Ruth':'Ruth',
+      'Lamentations':'Lamentations','Ecclesiastes':'Ecclesiastes','Esther':'Esther','Daniel':'Daniel',
+      'Ezra':'Ezra','Nehemiah':'Nehemiah','I Chronicles':'I Chronicles','II Chronicles':'II Chronicles',
+      'Berakhot':'Berakhot','Shabbat':'Shabbat','Eruvin':'Eruvin','Pesachim':'Pesachim',
+      'Rosh Hashanah':'Rosh Hashanah','Yoma':'Yoma','Sukkah':'Sukkah','Beitzah':'Beitzah',
+      'Taanit':'Taanit','Megillah':'Megillah','Moed Katan':'Moed Katan','Chagigah':'Chagigah',
+      'Yevamot':'Yevamot','Ketubot':'Ketubot','Nedarim':'Nedarim','Nazir':'Nazir','Sotah':'Sotah',
+      'Gittin':'Gittin','Kiddushin':'Kiddushin','Bava Kamma':'Bava Kamma','Bava Metzia':'Bava Metzia',
+      'Bava Batra':'Bava Batra','Sanhedrin':'Sanhedrin','Makkot':'Makkot','Shevuot':'Shevuot',
+      'Avodah Zarah':'Avodah Zarah','Horayot':'Horayot','Zevachim':'Zevachim','Menachot':'Menachot',
+      'Chullin':'Chullin','Bekhorot':'Bekhorot','Niddah':'Niddah'
+    };
+
+    function sefariaRef(book, chapter, cat){
+      const b = SEFARIA_BOOK_MAP[book] || book;
+      if(cat==='gemara') return `${b}.${chapter}a`; // daf pages
+      return `${b}.${chapter}`;
+    }
+
+    async function loadReaderChapter(){
+      const body=$('reader-body'); body.innerHTML='<div class="reader-loading">Loading from Sefaria…</div>';
+      const sRef = sefariaRef(readerBook, readerChapter, readerCategory);
+      const url = `https://www.sefaria.org/api/texts/${encodeURIComponent(sRef)}?context=0&pad=0&commentary=0&language=bilingual`;
+      try{
+        const res = await fetch(url);
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json();
+        const heArr = Array.isArray(data.he) ? data.he : (typeof data.he==='string'?[data.he]:[]);
+        const enArr = Array.isArray(data.text) ? data.text : (typeof data.text==='string'?[data.text]:[]);
+        const titleHe = data.heTitle||data.he_title||'';
+        const titleEn = data.title||data.sectionRef||sRef;
+        $('reader-title').textContent = `${titleEn} — Chapter ${readerChapter}`;
+        $('reader-sub').textContent = titleHe;
+        $('reader-sefaria').href = `https://www.sefaria.org/${encodeURIComponent(sRef)}`;
+        if(!heArr.length && !enArr.length){ body.innerHTML='<div class="reader-loading">No text found for this section.<br>Try a different chapter.</div>'; return; }
+        body.innerHTML='';
+        const len = Math.max(heArr.length, enArr.length);
+        for(let i=0;i<len;i++){
+          const he=(heArr[i]||'').replace(/<[^>]*>/g,'').trim();
+          const en=(enArr[i]||'').replace(/<[^>]*>/g,'').trim();
+          const v=document.createElement('div'); v.className='verse';
+          v.innerHTML=`<div class="vnum">${i+1}</div><div class="vtext">${he?`<div class="he">${escapeHtml(he)}</div>`:''}${en?`<div class="en">${escapeHtml(en)}</div>`:''}</div>`;
+          body.appendChild(v);
+        }
+      }catch(e){
+        console.error(e);
+        body.innerHTML=`<div class="reader-loading">Couldn't load text. Check your connection or try a different chapter.<br><small>${escapeHtml(String(e))}</small></div>`;
+      }
+    }
+
+    function openReader(book, chapter, cat){
+      readerBook=book; readerChapter=chapter||1; readerCategory=cat||'tanach';
+      $('reader-modal').classList.add('show');
+      loadReaderChapter();
+    }
+
+    $('reader-close').addEventListener('click',()=>$('reader-modal').classList.remove('show'));
+    $('reader-modal').addEventListener('click',(e)=>{ if(e.target.id==='reader-modal')$('reader-modal').classList.remove('show'); });
+    $('reader-prev').addEventListener('click',()=>{ if(readerChapter>1){ readerChapter--; loadReaderChapter(); }});
+    $('reader-next').addEventListener('click',()=>{ readerChapter++; loadReaderChapter(); });
+
+    $('read-text-btn').addEventListener('click',()=>{
+      const book=bookSel.value;
+      if(!book){ toast('Pick a text first.'); return; }
+      const loc=locationInp.value.trim();
+      const chap = loc ? parseInt(loc.split(/[: ]/)[0])||1 : 1;
+      openReader(book, chap, categorySel.value);
+    });
+
+    /* ═══════════ Firestore listeners (includes chat) ═══════════ */
+    function startListeners(){
+      if(listenersStarted)return; listenersStarted=true;
+      onSnapshot(collection(db,'presence'),(s)=>{ presenceList=s.docs.map(d=>d.data()); renderLearnFeed(); renderFriends(); renderDiscover(); },(e)=>{ console.error(e); toast('Live feed needs the Firestore rules published.'); });
+      onSnapshot(query(collection(db,'friendRequests'),where('to','==',currentUser.uid)),(s)=>{ incomingReqs=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
+      onSnapshot(query(collection(db,'friendRequests'),where('from','==',currentUser.uid)),(s)=>{ outgoingReqs=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
+      onSnapshot(query(collection(db,'friends'),where('users','array-contains',currentUser.uid)),(s)=>{ friendsList=s.docs.map(d=>d.data()); renderFriends(); renderDiscover(); },(e)=>console.error(e));
+      onSnapshot(collection(db,'users'),(s)=>{ allUsers=s.docs.map(d=>d.data()); renderDiscover(); },(e)=>console.error(e));
+      onSnapshot(collection(db,'users',currentUser.uid,'sessions'),(s)=>{ sessionsList=s.docs.map(d=>d.data()); renderActivity(); },(e)=>console.error(e));
+      startChatListeners();
+    }
   </script>
 
 </body>
