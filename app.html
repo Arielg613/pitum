@@ -652,6 +652,7 @@
             <div class="panel-sub">This is what other learners see.</div>
             <div class="field"><label>Display name</label><input type="text" id="set-name" /></div>
             <div class="field"><label>City</label><input type="text" id="set-city" /></div>
+            <div class="field"><label>Time zone <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-mute);">(for today's daily learning)</span></label><div class="select-wrap"><select id="set-timezone"></select></div></div>
             <div class="field"><label>About you</label><textarea id="set-bio" rows="3" placeholder="A line about what you love learning, who you are…"></textarea></div>
             <div class="field"><label>Learning Level</label><div class="chip-group" id="set-level-chips">
               <div class="chip" data-value="beginner">Beginner</div><div class="chip" data-value="intermediate">Intermediate</div><div class="chip" data-value="advanced">Advanced</div></div></div>
@@ -1222,15 +1223,18 @@
     function fillSettings(){
       $('set-name').value=profile.name||''; $('set-city').value=profile.city||''; $('set-bio').value=profile.bio||'';
       setSelected('set-level-chips',profile.level); setSelected('set-denom-chips',profile.denomination); setSelected('set-lang-chips',profile.language);
+      populateTimezones(); if($('set-timezone')) $('set-timezone').value=userTz();
       if($('toggle-dark'))$('toggle-dark').checked = localStorage.getItem('pitom_theme')==='dark';
     }
     $('save-settings-btn').addEventListener('click',async()=>{
       const name=$('set-name').value.trim()||profile.name, city=$('set-city').value.trim(), bio=$('set-bio').value.trim();
       const level=getSelected('set-level-chips')||profile.level, denom=getSelected('set-denom-chips')||profile.denomination, lang=getSelected('set-lang-chips')||profile.language;
+      const timezone=($('set-timezone')&&$('set-timezone').value)||userTz();
       try{
-        await updateDoc(doc(db,'users',currentUser.uid),{ name, city, bio, level, denomination:denom, language:lang });
-        profile={...profile, name, city, bio, level, denomination:denom, language:lang};
-        updateMiniUser();
+        await updateDoc(doc(db,'users',currentUser.uid),{ name, city, bio, level, denomination:denom, language:lang, timezone });
+        profile={...profile, name, city, bio, level, denomination:denom, language:lang, timezone};
+        localStorage.setItem('pitom_tz', timezone);
+        updateMiniUser(); loadTodayLearning();
         const m=$('settings-saved'); m.style.display='block'; setTimeout(()=>m.style.display='none',2000);
       }catch(e){ console.error(e); toast('Could not save.'); }
     });
@@ -1263,7 +1267,7 @@
       if(!city||!level||!denom||!lang){ errorMsg.style.display='block'; return; }
       errorMsg.style.display='none'; saveBtn.disabled=true; saveBtn.textContent='Saving…';
       try{
-        profile={ uid:currentUser.uid, name:currentUser.displayName, email:currentUser.email, photoURL:currentUser.photoURL, city, level, denomination:denom, language:lang, bio:'', profileComplete:true, createdAt:new Date().toISOString() };
+        profile={ uid:currentUser.uid, name:currentUser.displayName, email:currentUser.email, photoURL:currentUser.photoURL, city, level, denomination:denom, language:lang, bio:'', timezone:detectedTz(), profileComplete:true, createdAt:new Date().toISOString() };
         await setDoc(doc(db,'users',currentUser.uid),profile);
         enterApp();
       }catch(e){ console.error(e); saveBtn.disabled=false; saveBtn.textContent='Save & start learning →'; errorMsg.textContent='Something went wrong. Please try again.'; errorMsg.style.display='block'; }
@@ -1716,10 +1720,27 @@
         });
       }catch(e){ console.error(e); }
     }
+    // Timezone — the user's choice (or the device's), used to compute "today"
+    function detectedTz(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }catch(e){ return 'UTC'; } }
+    function userTz(){ return (profile&&profile.timezone) || localStorage.getItem('pitom_tz') || detectedTz(); }
+    function dateKeyInTz(tz){ try{ return new Intl.DateTimeFormat('en-CA',{ timeZone:tz }).format(new Date()); }catch(e){ return new Intl.DateTimeFormat('en-CA').format(new Date()); } }
+    function populateTimezones(){
+      const sel=$('set-timezone'); if(!sel || sel.options.length) return;
+      let zones=[]; try{ zones=(Intl.supportedValuesOf && Intl.supportedValuesOf('timeZone'))||[]; }catch(e){}
+      if(!zones.length) zones=['America/New_York','America/Los_Angeles','America/Chicago','Europe/London','Europe/Paris','Asia/Jerusalem','Australia/Sydney','UTC'];
+      const cur=userTz(); if(!zones.includes(cur)) zones.unshift(cur);
+      zones.forEach(z=>{ const o=document.createElement('option'); o.value=z; o.textContent=z.replace(/_/g,' '); sel.appendChild(o); });
+      sel.value=cur;
+    }
+
+    let todayLoadedKey=null, todayTimer=null;
     async function loadTodayLearning(){
       const el=$('lib-today'); if(!el) return;
+      const tz=userTz(); todayLoadedKey=dateKeyInTz(tz);
+      const custom = (profile&&(profile.denomination==='sefard'||profile.denomination==='sefardi')) ? 'sephardi' : 'ashkenazi';
+      const diaspora = (tz==='Asia/Jerusalem') ? 0 : 1;
       try{
-        const res=await fetch('https://www.sefaria.org/api/calendars');
+        const res=await fetch(`https://www.sefaria.org/api/calendars?timezone=${encodeURIComponent(tz)}&custom=${custom}&diaspora=${diaspora}`);
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data=await res.json();
         const items=(data.calendar_items||[]).filter(it=>it.ref);
@@ -1734,8 +1755,14 @@
         });
       }catch(e){ console.error(e); el.innerHTML='<span class="muted">Couldn\'t load today\'s schedule.</span>'; }
     }
+    // Refresh when the local date rolls over (tab left open across midnight, or returning later)
+    function checkDayRollover(){ if(todayLoadedKey && dateKeyInTz(userTz())!==todayLoadedKey) loadTodayLearning(); }
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkDayRollover(); });
+    window.addEventListener('focus', checkDayRollover);
+    if(todayTimer) clearInterval(todayTimer);
+    todayTimer=setInterval(checkDayRollover, 15*60*1000); // every 15 min
 
-    renderLibCats(); renderLibBooks(); loadTodayLearning();
+    renderLibCats(); renderLibBooks(); populateTimezones(); loadTodayLearning();
 
     /* ═══════════ VIDEO CALLING (WebRTC + Firestore signaling) ═══════════ */
     const ICE_CONFIG = { iceServers:[
