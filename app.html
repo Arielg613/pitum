@@ -316,7 +316,7 @@
     .call-bg.mini #local-video { display:none; }
     .call-bg.mini .call-status { display:none; }
     .call-bg.mini .call-controls { bottom:8px; gap:0; padding:5px; }
-    .call-bg.mini .call-controls #call-min, .call-bg.mini .call-controls #call-mute, .call-bg.mini .call-controls #call-cam { display:none; }
+    .call-bg.mini .call-controls #call-min, .call-bg.mini .call-controls #call-mute, .call-bg.mini .call-controls #call-cam, .call-bg.mini .call-controls #call-learn { display:none; }
     .call-bg.mini .call-btn { width:38px; height:38px; font-size:1rem; }
     .call-bg.mini .call-expand-hint { position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.5); color:#fff; font-size:0.62rem; padding:3px 7px; border-radius:100px; z-index:5; pointer-events:none; }
     .call-bg:not(.mini) .call-expand-hint { display:none; }
@@ -730,6 +730,7 @@
         <div class="call-expand-hint">Tap to expand ⤢</div>
       </div>
       <div class="call-controls">
+        <button class="call-btn" id="call-learn" title="Learn together — open a text you'll both see">📖</button>
         <button class="call-btn" id="call-min" title="Minimize — keep talking while you learn">⤡</button>
         <button class="call-btn" id="call-mute" title="Mute">🎤</button>
         <button class="call-btn" id="call-cam" title="Camera">📹</button>
@@ -1213,8 +1214,10 @@
     function showProfile(user){ loader.style.display='none'; onboard.style.display='flex'; shell.style.display='none'; stepSignin.style.display='none'; stepProfile.style.display='block'; $('user-first-name').textContent=(user.displayName?.split(' ')[0])||'there'; }
     function enterApp(){
       loader.style.display='none'; onboard.style.display='none'; shell.style.display='block';
-      updateMiniUser(); fillSettings(); loadBookmarks(); startListeners(); startOnlinePresence();
+      updateMiniUser(); fillSettings(); loadBookmarks(); startListeners(); startOnlinePresence(); requestNotifs();
     }
+    function requestNotifs(){ try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission().catch(()=>{}); }catch(e){} }
+    function notify(title, body){ try{ if('Notification' in window && Notification.permission==='granted' && document.hidden) new Notification(title,{ body, icon:'icon.png' }); }catch(e){} }
 
     /* ═══════════ Firestore listeners ═══════════ (defined later, after chat JS) */
 
@@ -1247,8 +1250,19 @@
       );
     }
 
+    const _convSeen = {}; let _convFirstLoad = true;
     function renderChatList(convs){
       const el = $('chat-list-inner');
+      // Notify on new incoming messages (skip the very first load)
+      convs.forEach(c=>{
+        const otherId=c.users.find(u=>u!==currentUser.uid); const info=(c.info&&c.info[otherId])||{};
+        const at=c.lastAt?.toMillis?.()||0;
+        if(!_convFirstLoad && at>(_convSeen[c.id]||0) && c.lastFrom && c.lastFrom!==currentUser.uid && c.id!==activeConvId){
+          notify('💬 '+(info.name||'New message'), c.lastMsg||'');
+        }
+        _convSeen[c.id]=at;
+      });
+      _convFirstLoad=false;
       if(!convs.length){ el.innerHTML='<div class="empty"><p>No conversations yet.<br><span class="em">Message a friend to start.</span></p></div>'; updateMsgBadge(0); return; }
       convs.sort((a,b)=>(b.lastAt?.toMillis?.()||0)-(a.lastAt?.toMillis?.()||0));
       el.innerHTML='';
@@ -1319,7 +1333,7 @@
         await addDoc(collection(db,'conversations',activeConvId,'messages'),{ from:currentUser.uid, text, sentAt:serverTimestamp() });
         const prev = (await getDoc(doc(db,'conversations',activeConvId))).data()?.unread?.[otherId] || 0;
         await updateDoc(doc(db,'conversations',activeConvId),{
-          lastMsg: text, lastAt: serverTimestamp(),
+          lastMsg: text, lastAt: serverTimestamp(), lastFrom: currentUser.uid,
           [`unread.${otherId}`]: prev + 1
         });
       }catch(e){ console.error(e); toast('Failed to send.'); }
@@ -1385,8 +1399,6 @@
 
     // readerPos: for gemara it's an amud-index (0 => daf 2a, 1 => 2b, 2 => 3a …);
     // for everything else it's a chapter number (>= 1).
-    function readerMinPos(){ return readerCategory==='gemara' ? 0 : 1; }
-
     function readerBookRef(){
       const b = SEFARIA_BOOK_MAP[readerBook] || readerBook;
       if(readerCategory==='mishna') return 'Mishnah ' + b;
@@ -1433,10 +1445,19 @@
 
     // Current ref + the next/prev refs Sefaria gives us — lets us page through ANY text
     let readerCurRef = null, readerNextRef = null, readerPrevRef = null;
+    let lastSharedRef = null; // for synced reading during a call
+
+    // Push the text I'm reading to my call partner (so we stay on the same daf)
+    function shareReaderRef(ref){
+      if(!activeCallId || !ref || ref===lastSharedRef) return;
+      lastSharedRef = ref;
+      updateDoc(doc(db,'calls',activeCallId),{ sharedRef:ref }).catch(()=>{});
+    }
 
     async function loadReaderRef(){
       const body=$('reader-body'); body.innerHTML='<div class="reader-loading">Loading from Sefaria…</div>';
       const sRef = readerCurRef;
+      shareReaderRef(sRef);
       const url = `https://www.sefaria.org/api/texts/${encodeURIComponent(sRef)}?context=0&pad=0&commentary=0`;
       try{
         const res = await fetch(url);
@@ -1638,7 +1659,13 @@
     renderLibCats(); renderLibBooks();
 
     /* ═══════════ VIDEO CALLING (WebRTC + Firestore signaling) ═══════════ */
-    const ICE_CONFIG = { iceServers:[{ urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302'] }] };
+    const ICE_CONFIG = { iceServers:[
+      { urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302'] },
+      // Free public TURN relays (OpenRelay) so calls connect even behind strict NAT
+      { urls:'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject' },
+      { urls:'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject' },
+      { urls:'turn:openrelay.metered.ca:443?transport=tcp', username:'openrelayproject', credential:'openrelayproject' }
+    ] };
     let pc=null, localStream=null, remoteStream=null, activeCallId=null, callUnsubs=[];
     let incomingCallId=null, incomingData=null;
 
@@ -1675,6 +1702,7 @@
         if(!snap.exists()){ endCall(false); return; }      // other side hung up (doc deleted)
         const d=snap.data();
         if(d.answer && pc && !pc.currentRemoteDescription){ pc.setRemoteDescription(new RTCSessionDescription(d.answer)); }
+        applySharedRef(d.sharedRef);
         if(d.status==='ended' || d.status==='declined'){ if(d.status==='declined') toast('Call declined.'); endCall(false); }
       }));
       callUnsubs.push(onSnapshot(calleeCands,(snap)=>{ snap.docChanges().forEach(c=>{ if(c.type==='added'&&pc) pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{}); }); }));
@@ -1695,7 +1723,17 @@
       await pc.setLocalDescription(answer);
       await updateDoc(callRef,{ answer:{type:answer.type,sdp:answer.sdp}, status:'active' });
       callUnsubs.push(onSnapshot(callerCands,(snap)=>{ snap.docChanges().forEach(c=>{ if(c.type==='added'&&pc) pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{}); }); }));
-      callUnsubs.push(onSnapshot(callRef,(snap)=>{ if(!snap.exists()){ endCall(false); return; } const d=snap.data(); if(d.status==='ended') endCall(false); }));
+      callUnsubs.push(onSnapshot(callRef,(snap)=>{ if(!snap.exists()){ endCall(false); return; } const d=snap.data(); applySharedRef(d.sharedRef); if(d.status==='ended') endCall(false); }));
+    }
+
+    // Partner opened/changed a text — open the same one on my side
+    function applySharedRef(ref){
+      if(!ref || ref===readerCurRef || ref===lastSharedRef) return;
+      lastSharedRef = ref;
+      readerCurRef = ref;
+      $('reader-modal').classList.add('show'); applyReaderPrefs(); loadReaderRef();
+      if(!$('call-modal').classList.contains('mini') && $('call-modal').classList.contains('show')) minimizeCall();
+      toast('📖 Your chavruta opened a text');
     }
 
     let ending=false;
@@ -1723,6 +1761,7 @@
             $('ic-name').textContent=incomingData.callerName||'Someone';
             $('ic-avatar').innerHTML = incomingData.callerPhoto?`<img src="${escapeHtml(incomingData.callerPhoto)}" referrerpolicy="no-referrer">`:(incomingData.callerName||'?').charAt(0).toUpperCase();
             $('incoming-call').classList.add('show');
+            notify('📹 Incoming video call', (incomingData.callerName||'Someone')+' is calling you');
           }
           if(c.type==='removed' && c.doc.id===incomingCallId){ // caller canceled before pickup
             incomingCallId=null; $('incoming-call').classList.remove('show');
@@ -1734,6 +1773,7 @@
     $('ic-accept').addEventListener('click',()=>{ $('incoming-call').classList.remove('show'); const id=incomingCallId, d=incomingData; incomingCallId=null; answerCall(id,d); });
     $('ic-decline').addEventListener('click',async()=>{ $('incoming-call').classList.remove('show'); const id=incomingCallId; incomingCallId=null; if(id){ try{ await updateDoc(doc(db,'calls',id),{status:'declined'}); }catch(e){} } });
     $('call-hangup').addEventListener('click',(e)=>{ e.stopPropagation(); endCall(true); });
+    $('call-learn').addEventListener('click',(e)=>{ e.stopPropagation(); minimizeCall(); switchView('library'); toast('Pick a text — your chavruta will see it too 📖'); });
     $('call-mute').addEventListener('click',()=>{ if(!localStream)return; const t=localStream.getAudioTracks()[0]; if(t){ t.enabled=!t.enabled; $('call-mute').classList.toggle('off',!t.enabled); } });
     $('call-cam').addEventListener('click',()=>{ if(!localStream)return; const t=localStream.getVideoTracks()[0]; if(t){ t.enabled=!t.enabled; $('call-cam').classList.toggle('off',!t.enabled); } });
 
