@@ -381,7 +381,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import {
       getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc,
       collection, onSnapshot, serverTimestamp
@@ -749,15 +749,35 @@
       startFeed();
     }
 
-    /* ═══════════ Sign in ═══════════ */
+    /* ═══════════ Sign in ═══════════
+       Popup keeps the whole flow in this tab, so the auth result can't get
+       lost on a cross-domain redirect (which is what was looping us back to
+       the Welcome screen on GitHub Pages). If the popup is blocked, we fall
+       back to the redirect flow. onAuthStateChanged handles routing either way.
+    */
     signinBtn.addEventListener('click', async () => {
+      signinBtn.disabled = true;
       try {
-        await signOut(auth).catch(() => {});
-        await signInWithRedirect(auth, provider);
-      } catch (e) { console.error(e); }
+        await signInWithPopup(auth, provider);
+        // success → onAuthStateChanged routes us into the app
+      } catch (e) {
+        console.error('popup sign-in failed:', e);
+        if (e.code === 'auth/popup-closed-by-user' ||
+            e.code === 'auth/cancelled-popup-request') {
+          // user closed the popup — just let them try again
+        } else if (e.code === 'auth/popup-blocked' ||
+                   e.code === 'auth/operation-not-supported-in-this-environment') {
+          // popups disabled → fall back to full-page redirect
+          try { await signInWithRedirect(auth, provider); } catch (e2) { console.error(e2); }
+        } else {
+          toast('Sign-in failed. Please try again.');
+        }
+      } finally {
+        signinBtn.disabled = false;
+      }
     });
 
-    // Surface any redirect errors (the routing itself is handled by onAuthStateChanged).
+    // Complete any redirect-fallback sign-in (errors only; routing via onAuthStateChanged).
     getRedirectResult(auth).catch(e => console.error(e));
 
     /* ═══════════ Save profile ═══════════ */
