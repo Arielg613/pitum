@@ -710,8 +710,8 @@
       <span class="nav-logo-he">פִּתְאוֹם</span>
     </a>
     <div class="nav-right">
-      <a class="nav-signin" href="app.html">Sign in</a>
-      <a class="nav-cta" href="#waitlist">Join the waitlist</a>
+      <a class="nav-signin" href="#how">How it works</a>
+      <a class="nav-cta" href="app.html">Open Pitom →</a>
     </div>
   </nav>
 
@@ -722,11 +722,12 @@
     <h1>Never learn <em>alone</em> again.</h1>
     <p class="hero-sub">
       Pitom matches you with a chavruta partner — instantly, remotely, right now.
-      Open the app, say what you're learning, and be learning together in seconds. No scheduling. No friction.
+      The whole Sefaria library is built in, with live video so you can open a sefer and learn together
+      even without a book in hand. No scheduling. No friction.
     </p>
     <div class="hero-actions">
-      <a class="btn-primary" href="#waitlist">
-        Join the waitlist
+      <a class="btn-primary" href="app.html">
+        Open Pitom — it's live
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -855,26 +856,23 @@
   <!-- FINAL CTA -->
   <section class="cta-section" id="waitlist">
     <div class="cta-inner">
-      <span class="section-tag reveal">Coming soon</span>
-      <h2 class="section-title reveal">Be the first to<br><em style="font-family:var(--serif);font-style:italic;color:var(--gold);">learn together.</em></h2>
-      <p class="section-sub reveal">Pitom is in private beta. Drop your email and we'll reach out when a spot opens up.</p>
-      <form class="waitlist-form reveal" action="https://formspree.io/f/xpqgpeyb" method="POST">
-        <input type="hidden" name="_next" value="https://arielg613.github.io/pitum/thanks.html" />
-        <input
-          class="waitlist-input"
-          type="email"
-          name="email"
-          placeholder="your@email.com"
-          required
-        />
-        <button class="btn-primary" type="submit">
-          Count me in
+      <span class="section-tag reveal">It's live</span>
+      <h2 class="section-title reveal">Start learning<br><em style="font-family:var(--serif);font-style:italic;color:var(--gold);">together — now.</em></h2>
+      <p class="section-sub reveal">Sign in with Google and you're in. The whole library, live chavruta, and video — free.</p>
+      <div class="hero-actions reveal" style="justify-content:center;margin-top:8px;">
+        <a class="btn-primary" href="app.html">
+          Open Pitom
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </button>
+        </a>
+      </div>
+      <p class="waitlist-note" style="margin-top:22px;">Want updates instead? Drop your email:</p>
+      <form class="waitlist-form reveal" action="https://formspree.io/f/xpqgpeyb" method="POST">
+        <input type="hidden" name="_next" value="https://arielg613.github.io/pitum/thanks.html" />
+        <input class="waitlist-input" type="email" name="email" placeholder="your@email.com" required />
+        <button class="btn-primary" type="submit">Keep me posted</button>
       </form>
-      <p class="waitlist-note">No spam. Just a heads-up when Pitom is ready.</p>
       <p class="success-msg" id="success-msg">תודה! — You're on the list. We'll be in touch soon. 🕯️</p>
     </div>
   </section>
