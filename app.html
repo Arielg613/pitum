@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pitom — Learn Live</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:    #FAF7F2;
+      --cream-2:  #F3EDE3;
+      --ink:      #1C1611;
+      --ink-soft: #4A3F35;
+      --gold:     #C8832A;
+      --gold-lt:  #E4A84B;
+      --gold-bg:  #FDF3E2;
+      --border:   rgba(28,22,17,0.10);
+      --green:    #27C93F;
+      --serif:    'Fraunces', Georgia, serif;
+      --sans:     'Inter', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: var(--sans);
+      min-height: 100svh;
+      line-height: 1.55;
+    }
+
+    /* ───────── ONBOARDING (sign-in + profile) ───────── */
+    #onboard {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 5vw;
+    }
+    .brand {
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 36px;
+      text-decoration: none;
+    }
+    .brand span { color: var(--gold); font-style: italic; font-weight: 300; margin-left: 6px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 12px 40px rgba(28,22,17,0.07);
+    }
+
+    #step-signin { text-align: center; }
+    #step-signin h1 {
+      font-family: var(--serif);
+      font-size: 1.9rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 10px;
+    }
+    #step-signin p { color: var(--ink-soft); font-size: 0.95rem; font-weight: 300; margin-bottom: 32px; }
+
+    .google-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: #fff; border: 1px solid var(--border); border-radius: 100px;
+      padding: 13px 28px; font-family: var(--sans); font-size: 0.95rem; font-weight: 500;
+      color: var(--ink); cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;
+      box-shadow: 0 2px 8px rgba(28,22,17,0.06);
+    }
+    .google-btn:hover { box-shadow: 0 6px 20px rgba(28,22,17,0.1); transform: translateY(-1px); }
+
+    #step-profile { display: none; }
+    .welcome { margin-bottom: 28px; }
+    .welcome h2 {
+      font-family: var(--serif); font-size: 1.5rem; font-weight: 600;
+      letter-spacing: -0.02em; margin-bottom: 4px;
+    }
+    .welcome p { font-size: 0.85rem; color: var(--ink-soft); font-weight: 300; }
+
+    .field { margin-bottom: 20px; }
+    label {
+      display: block; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px;
+    }
+    input[type="text"], select {
+      width: 100%; padding: 12px 16px; border: 1px solid var(--border);
+      border-radius: 12px; background: var(--cream); font-family: var(--sans);
+      font-size: 0.95rem; color: var(--ink); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s; appearance: none;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,131,42,0.12);
+    }
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '▾'; position: absolute; right: 16px; top: 50%;
+      transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; font-size: 0.85rem;
+    }
+    .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border);
+      background: var(--cream); font-family: var(--sans); font-size: 0.85rem;
+      font-weight: 400; color: var(--ink-soft); cursor: pointer;
+      transition: all 0.15s; user-select: none;
+    }
+    .chip:hover { border-color: var(--gold); color: var(--gold); }
+    .chip.selected { background: var(--gold-bg); border-color: var(--gold); color: var(--gold); font-weight: 500; }
+
+    .submit-btn {
+      width: 100%; background: var(--gold); color: #fff; font-family: var(--sans);
+      font-size: 1rem; font-weight: 500; padding: 14px; border-radius: 100px;
+      border: none; cursor: pointer; margin-top: 28px;
+      transition: background 0.2s, transform 0.15s; box-shadow: 0 4px 16px rgba(200,131,42,0.25);
+    }
+    .submit-btn:hover { background: var(--gold-lt); transform: translateY(-1px); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .error-msg { color: #c0392b; font-size: 0.82rem; margin-top: 12px; text-align: center; display: none; }
+
+    /* ───────── LIVE APP ───────── */
+    #app { display: none; }
+
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5vw; height: 62px;
+      background: rgba(250,247,242,0.9); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; color: var(--ink); text-decoration: none; }
+    .logo span { color: var(--gold); font-style: italic; font-weight: 300; font-size: 0.9rem; margin-left: 5px; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { font-size: 0.85rem; color: var(--ink-soft); }
+    .nav-user strong { color: var(--ink); font-weight: 600; }
+    .signout {
+      font-size: 0.82rem; color: var(--ink-soft); background: none;
+      border: 1px solid var(--border); border-radius: 100px; padding: 6px 14px;
+      cursor: pointer; transition: border-color 0.2s, color 0.2s;
+    }
+    .signout:hover { border-color: var(--gold); color: var(--gold); }
+
+    .wrap {
+      max-width: 1080px; margin: 0 auto; padding: 36px 5vw 80px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;
+    }
+    @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: #fff; border: 1px solid var(--border); border-radius: 18px;
+      padding: 28px; box-shadow: 0 10px 36px rgba(28,22,17,0.06);
+    }
+    .panel-title { font-family: var(--serif); font-size: 1.3rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .panel-sub { font-size: 0.85rem; color: var(--ink-soft); font-weight: 300; margin-bottom: 22px; }
+
+    .ref-preview {
+      background: var(--gold-bg); border: 1px dashed rgba(200,131,42,0.4);
+      border-radius: 12px; padding: 14px 16px; margin: 4px 0 20px;
+      font-size: 0.9rem; color: var(--ink-soft);
+    }
+    .ref-preview strong {
+      display: block; font-family: var(--serif); font-size: 1.15rem;
+      color: var(--gold); font-weight: 600; margin-top: 2px;
+    }
+    .go-btn {
+      width: 100%; background: var(--gold); color: #fff; font-family: var(--sans);
+      font-size: 1rem; font-weight: 500; padding: 14px; border-radius: 100px;
+      border: none; cursor: pointer; transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 16px rgba(200,131,42,0.25);
+    }
+    .go-btn:hover { background: var(--gold-lt); transform: translateY(-1px); }
+    .go-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .go-btn.live { background: #fff; color: #c0392b; border: 1px solid rgba(192,57,43,0.4); box-shadow: none; }
+    .go-btn.live:hover { background: #fff5f5; }
+
+    .live-status { display: none; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 0.85rem; color: var(--green); font-weight: 500; }
+    .live-status.on { display: flex; }
+    .live-dot { width: 9px; height: 9px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.4;transform:scale(.75);} }
+
+    .feed-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .online-count {
+      font-size: 0.78rem; color: var(--ink-soft); background: var(--cream-2);
+      padding: 4px 11px; border-radius: 100px; border: 1px solid var(--border);
+    }
+    .feed-list { display: flex; flex-direction: column; gap: 10px; }
+    .feed-empty { text-align: center; color: var(--ink-soft); font-size: 0.9rem; font-weight: 300; padding: 40px 10px; }
+    .feed-empty .em { font-family: var(--serif); font-style: italic; color: var(--gold); }
+
+    .user-row {
+      display: flex; align-items: center; gap: 13px; background: var(--cream);
+      border: 1px solid var(--border); border-radius: 13px; padding: 12px 15px;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .user-row.match { border-color: var(--gold); background: var(--gold-bg); box-shadow: 0 4px 16px rgba(200,131,42,0.12); }
+    .avatar {
+      width: 42px; height: 42px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0;
+      background: #fff; border: 2px solid rgba(200,131,42,0.25); overflow: hidden;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name {
+      font-weight: 600; font-size: 0.9rem; color: var(--ink);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .match-badge {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #fff; background: var(--gold); padding: 2px 7px; border-radius: 100px;
+    }
+    .you-badge {
+      font-size: 0.62rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--ink-soft); background: var(--cream-2); border: 1px solid var(--border);
+      padding: 2px 7px; border-radius: 100px;
+    }
+    .user-meta { font-size: 0.76rem; color: var(--ink-soft); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .user-topic {
+      display: inline-block; background: #fff; color: var(--gold); font-size: 0.72rem;
+      font-weight: 600; padding: 3px 9px; border-radius: 100px;
+      border: 1px solid rgba(200,131,42,0.3); flex-shrink: 0;
+    }
+    .match .user-topic { background: var(--gold); color: #fff; border-color: var(--gold); }
+    .join-btn {
+      background: var(--gold); color: #fff; font-size: 0.78rem; font-weight: 500;
+      padding: 8px 16px; border-radius: 100px; border: none; cursor: pointer;
+      flex-shrink: 0; transition: background 0.2s, transform 0.15s;
+    }
+    .join-btn:hover { background: var(--gold-lt); transform: scale(1.04); }
+    .join-btn:disabled { background: var(--cream-2); color: var(--ink-soft); cursor: default; }
+
+    /* ───────── LOADER + TOAST ───────── */
+    #loader {
+      position: fixed; inset: 0; background: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px; z-index: 200;
+    }
+    #loader .spark { font-size: 2rem; animation: pulse 1.5s infinite; }
+    #loader p { color: var(--ink-soft); font-size: 0.9rem; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120%);
+      background: var(--ink); color: var(--cream); padding: 13px 22px; border-radius: 100px;
+      font-size: 0.88rem; box-shadow: 0 8px 30px rgba(0,0,0,0.25); z-index: 150;
+      transition: transform 0.3s ease; max-width: 90vw; text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div id="loader">
+    <div class="spark">🕯️</div>
+    <p>Loading Pitom…</p>
+  </div>
+
+  <!-- ═════════ ONBOARDING ═════════ -->
+  <div id="onboard" style="display:none;">
+    <a class="brand" href="index.html">Pitom <span>פִּתְאוֹם</span></a>
+    <div class="card">
+
+      <!-- Sign in -->
+      <div id="step-signin">
+        <h1>Welcome to Pitom</h1>
+        <p>Sign in with Google to start learning.</p>
+        <button class="google-btn" id="signin-btn">
+          <svg width="20" height="20" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Continue with Google
+        </button>
+      </div>
+
+      <!-- Profile -->
+      <div id="step-profile">
+        <div class="welcome">
+          <h2>Hi, <span id="user-first-name">there</span> 👋</h2>
+          <p>Tell us a bit about how you learn.</p>
+        </div>
+        <div class="field">
+          <label>Your City</label>
+          <input type="text" id="city" placeholder="e.g. Jerusalem, New York, London" />
+        </div>
+        <div class="field">
+          <label>Learning Level</label>
+          <div class="chip-group" id="level-chips">
+            <div class="chip" data-value="beginner">Beginner</div>
+            <div class="chip" data-value="intermediate">Intermediate</div>
+            <div class="chip" data-value="advanced">Advanced</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Denomination</label>
+          <div class="chip-group" id="denom-chips">
+            <div class="chip" data-value="orthodox">Orthodox</div>
+            <div class="chip" data-value="conservative">Conservative</div>
+            <div class="chip" data-value="reform">Reform</div>
+            <div class="chip" data-value="traditional">Traditional</div>
+            <div class="chip" data-value="other">Other</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Learning Language</label>
+          <div class="chip-group" id="lang-chips">
+            <div class="chip" data-value="hebrew">Hebrew</div>
+            <div class="chip" data-value="english">English</div>
+            <div class="chip" data-value="both">Both</div>
+          </div>
+        </div>
+        <button class="submit-btn" id="save-btn">Save & start learning →</button>
+        <p class="error-msg" id="error-msg">Please fill in all fields before continuing.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════ LIVE APP ═════════ -->
+  <div id="app">
+    <nav>
+      <a class="logo" href="index.html">Pitom <span>פִּתְאוֹם</span></a>
+      <div class="nav-right">
+        <span class="nav-user">Hi, <strong id="nav-name">there</strong></span>
+        <button class="signout" id="signout-btn">Sign out</button>
+      </div>
+    </nav>
+
+    <div class="wrap">
+      <!-- What are you learning -->
+      <div class="panel">
+        <div class="panel-title">What are you learning?</div>
+        <div class="panel-sub">Pick your text, go live, and we'll match you with others learning the same thing.</div>
+
+        <div class="live-status" id="live-status">
+          <span class="live-dot"></span> You're live — learning <strong id="live-ref" style="margin-left:4px;"></strong>
+        </div>
+
+        <div class="field">
+          <label>Type of text</label>
+          <div class="select-wrap"><select id="category"></select></div>
+        </div>
+        <div class="field">
+          <label id="book-label">Text</label>
+          <div class="select-wrap"><select id="book"></select></div>
+        </div>
+        <div class="field" id="location-field">
+          <label id="location-label">Location</label>
+          <input type="text" id="location" placeholder="" autocomplete="off" />
+        </div>
+
+        <div class="ref-preview">
+          Right now I'm learning:
+          <strong id="ref-preview">—</strong>
+        </div>
+
+        <button class="go-btn" id="go-btn">Go live →</button>
+      </div>
+
+      <!-- Who's online -->
+      <div class="panel">
+        <div class="feed-head">
+          <div class="panel-title">Learning right now</div>
+          <div class="online-count" id="online-count">0 online</div>
+        </div>
+        <div class="feed-list" id="feed-list">
+          <div class="feed-empty">
+            <p>No one's live yet.<br><span class="em">Be the first — go live and start the fire.</span> 🕯️</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc,
+      collection, onSnapshot, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA7Fkq-vhz4193HV5NqzyEYhNgw4x1LL6c",
+      authDomain: "pitum-77bac.firebaseapp.com",
+      projectId: "pitum-77bac",
+      storageBucket: "pitum-77bac.firebasestorage.app",
+      messagingSenderId: "143903138582",
+      appId: "1:143903138582:web:b3446f79205be35ce8e637",
+      measurementId: "G-X9C34T1EEV"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    /* ═══════════ TEXT LIBRARY ═══════════ */
+    const LIBRARY = {
+      tanach: {
+        label: "Tanach (Torah, Nevi'im, Ketuvim)",
+        bookLabel: "Book", locationLabel: "Chapter : Verse", placeholder: "e.g. 12:3",
+        books: [
+          "— Torah —",
+          "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
+          "— Nevi'im (Prophets) —",
+          "Joshua", "Judges", "I Samuel", "II Samuel", "I Kings", "II Kings",
+          "Isaiah", "Jeremiah", "Ezekiel",
+          "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum",
+          "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+          "— Ketuvim (Writings) —",
+          "Psalms", "Proverbs", "Job", "Song of Songs", "Ruth", "Lamentations",
+          "Ecclesiastes", "Esther", "Daniel", "Ezra", "Nehemiah",
+          "I Chronicles", "II Chronicles"
+        ]
+      },
+      parsha: {
+        label: "Parsha (Weekly Torah portion)",
+        bookLabel: "Parsha", locationLabel: "Aliyah / verse (optional)",
+        placeholder: "e.g. 2nd aliyah (optional)", locationOptional: true,
+        books: [
+          "Bereshit", "Noach", "Lech-Lecha", "Vayera", "Chayei Sara", "Toldot",
+          "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi",
+          "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah",
+          "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei",
+          "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot",
+          "Kedoshim", "Emor", "Behar", "Bechukotai",
+          "Bamidbar", "Nasso", "Behaalotcha", "Shlach", "Korach", "Chukat",
+          "Balak", "Pinchas", "Matot", "Masei",
+          "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei",
+          "Ki Tavo", "Nitzavim", "Vayeilech", "Haazinu", "Vezot Haberachah"
+        ]
+      },
+      gemara: {
+        label: "Gemara (Talmud Bavli)",
+        bookLabel: "Masechet", locationLabel: "Daf + Amud", placeholder: "e.g. 23b",
+        books: [
+          "— Seder Zeraim —", "Berakhot",
+          "— Seder Moed —",
+          "Shabbat", "Eruvin", "Pesachim", "Rosh Hashanah", "Yoma", "Sukkah",
+          "Beitzah", "Taanit", "Megillah", "Moed Katan", "Chagigah",
+          "— Seder Nashim —",
+          "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
+          "— Seder Nezikin —",
+          "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
+          "Shevuot", "Avodah Zarah", "Horayot",
+          "— Seder Kodashim —",
+          "Zevachim", "Menachot", "Chullin", "Bekhorot", "Arakhin", "Temurah",
+          "Keritot", "Meilah", "Tamid",
+          "— Seder Tahorot —", "Niddah"
+        ]
+      },
+      mishna: {
+        label: "Mishna",
+        bookLabel: "Masechet", locationLabel: "Chapter : Mishna", placeholder: "e.g. 1:1",
+        books: [
+          "— Seder Zeraim —",
+          "Berakhot", "Peah", "Demai", "Kilayim", "Sheviit", "Terumot",
+          "Maasrot", "Maaser Sheni", "Challah", "Orlah", "Bikkurim",
+          "— Seder Moed —",
+          "Shabbat", "Eruvin", "Pesachim", "Shekalim", "Yoma", "Sukkah",
+          "Beitzah", "Rosh Hashanah", "Taanit", "Megillah", "Moed Katan", "Chagigah",
+          "— Seder Nashim —",
+          "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
+          "— Seder Nezikin —",
+          "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
+          "Shevuot", "Eduyot", "Avodah Zarah", "Avot", "Horayot",
+          "— Seder Kodashim —",
+          "Zevachim", "Menachot", "Chullin", "Bekhorot", "Arakhin", "Temurah",
+          "Keritot", "Meilah", "Tamid", "Middot", "Kinnim",
+          "— Seder Tahorot —",
+          "Kelim", "Oholot", "Negaim", "Parah", "Tahorot", "Mikvaot", "Niddah",
+          "Makhshirin", "Zavim", "Tevul Yom", "Yadayim", "Oktzin"
+        ]
+      },
+      rambam: {
+        label: "Rambam (Mishneh Torah)",
+        bookLabel: "Book", locationLabel: "Halachot + chapter (optional)",
+        placeholder: "e.g. Hilchot Teshuvah 3:4", locationOptional: true,
+        books: [
+          "Sefer HaMadda", "Sefer Ahavah", "Sefer Zemanim", "Sefer Nashim",
+          "Sefer Kedushah", "Sefer Haflaah", "Sefer Zeraim", "Sefer Avodah",
+          "Sefer Korbanot", "Sefer Taharah", "Sefer Nezikin", "Sefer Kinyan",
+          "Sefer Mishpatim", "Sefer Shofetim"
+        ]
+      }
+    };
+    const isHeader = (s) => s.startsWith("—");
+
+    /* ═══════════ DOM ═══════════ */
+    const loader      = document.getElementById('loader');
+    const onboard     = document.getElementById('onboard');
+    const appEl       = document.getElementById('app');
+    const stepSignin  = document.getElementById('step-signin');
+    const stepProfile = document.getElementById('step-profile');
+    const signinBtn   = document.getElementById('signin-btn');
+    const saveBtn     = document.getElementById('save-btn');
+    const errorMsg    = document.getElementById('error-msg');
+
+    const navName     = document.getElementById('nav-name');
+    const categorySel = document.getElementById('category');
+    const bookSel     = document.getElementById('book');
+    const bookLabel   = document.getElementById('book-label');
+    const locationLbl = document.getElementById('location-label');
+    const locationInp = document.getElementById('location');
+    const refPreview  = document.getElementById('ref-preview');
+    const goBtn       = document.getElementById('go-btn');
+    const liveStatus  = document.getElementById('live-status');
+    const liveRef     = document.getElementById('live-ref');
+    const feedList    = document.getElementById('feed-list');
+    const onlineCount = document.getElementById('online-count');
+    const signoutBtn  = document.getElementById('signout-btn');
+    const toastEl     = document.getElementById('toast');
+
+    let currentUser = null;
+    let profile = null;
+    let isLive = false;
+    let heartbeat = null;
+    let feedStarted = false;
+
+    /* ═══════════ Toast ═══════════ */
+    let toastTimer = null;
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3000);
+    }
+
+    /* ═══════════ Profile chips ═══════════ */
+    function setupChips(groupId) {
+      const chips = document.querySelectorAll(`#${groupId} .chip`);
+      chips.forEach(chip => chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+      }));
+    }
+    setupChips('level-chips'); setupChips('denom-chips'); setupChips('lang-chips');
+    function getSelected(groupId) {
+      const sel = document.querySelector(`#${groupId} .chip.selected`);
+      return sel ? sel.dataset.value : null;
+    }
+
+    /* ═══════════ Text picker ═══════════ */
+    Object.entries(LIBRARY).forEach(([key, cat]) => {
+      const opt = document.createElement('option');
+      opt.value = key; opt.textContent = cat.label;
+      categorySel.appendChild(opt);
+    });
+    function populateBooks() {
+      const cat = LIBRARY[categorySel.value];
+      bookLabel.textContent = cat.bookLabel;
+      bookSel.innerHTML = '';
+      cat.books.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = isHeader(b) ? '' : b;
+        opt.textContent = b;
+        if (isHeader(b)) { opt.disabled = true; opt.style.color = '#b0a090'; }
+        bookSel.appendChild(opt);
+      });
+      const firstReal = cat.books.find(b => !isHeader(b));
+      bookSel.value = firstReal || '';
+      locationLbl.textContent = cat.locationLabel;
+      locationInp.value = '';
+      locationInp.placeholder = cat.placeholder;
+      updatePreview();
+    }
+    function buildRef() {
+      const book = bookSel.value;
+      const loc = locationInp.value.trim();
+      if (!book) return '';
+      return loc ? `${book} ${loc}` : book;
+    }
+    function updatePreview() {
+      const ref = buildRef();
+      refPreview.textContent = ref || '—';
+      if (!isLive) goBtn.disabled = !bookSel.value;
+    }
+    categorySel.addEventListener('change', populateBooks);
+    bookSel.addEventListener('change', updatePreview);
+    locationInp.addEventListener('input', updatePreview);
+    populateBooks();
+
+    /* ═══════════ Presence ═══════════ */
+    async function goLive() {
+      const ref = buildRef();
+      if (!ref) { toast('Pick a text first.'); return; }
+      const cat = LIBRARY[categorySel.value];
+      try {
+        await setDoc(doc(db, 'presence', currentUser.uid), {
+          uid: currentUser.uid,
+          name: profile.name || currentUser.displayName || 'Anonymous',
+          photoURL: currentUser.photoURL || '',
+          city: profile.city || '',
+          level: profile.level || '',
+          language: profile.language || '',
+          category: categorySel.value,
+          categoryLabel: cat.label,
+          book: bookSel.value,
+          location: locationInp.value.trim(),
+          ref,
+          online: true,
+          updatedAt: serverTimestamp()
+        });
+        setLiveState(true, ref);
+        startHeartbeat();
+        toast("You're live! 🕯️");
+      } catch (e) { console.error(e); toast('Could not go live. Try again.'); }
+    }
+    async function stopLive() {
+      stopHeartbeat();
+      try { await deleteDoc(doc(db, 'presence', currentUser.uid)); } catch (e) { console.error(e); }
+      setLiveState(false);
+      toast('You went offline.');
+    }
+    function setLiveState(on, ref) {
+      isLive = on;
+      if (on) {
+        liveStatus.classList.add('on');
+        liveRef.textContent = ref;
+        goBtn.textContent = 'Stop — go offline';
+        goBtn.classList.add('live');
+        goBtn.disabled = false;
+        categorySel.disabled = bookSel.disabled = locationInp.disabled = true;
+      } else {
+        liveStatus.classList.remove('on');
+        goBtn.textContent = 'Go live →';
+        goBtn.classList.remove('live');
+        categorySel.disabled = bookSel.disabled = locationInp.disabled = false;
+        updatePreview();
+      }
+    }
+    function startHeartbeat() {
+      stopHeartbeat();
+      heartbeat = setInterval(() => {
+        updateDoc(doc(db, 'presence', currentUser.uid), { updatedAt: serverTimestamp() })
+          .catch(e => console.error(e));
+      }, 60000);
+    }
+    function stopHeartbeat() { if (heartbeat) { clearInterval(heartbeat); heartbeat = null; } }
+    goBtn.addEventListener('click', () => { isLive ? stopLive() : goLive(); });
+    window.addEventListener('pagehide', () => {
+      if (isLive && currentUser) { try { deleteDoc(doc(db, 'presence', currentUser.uid)); } catch (e) {} }
+    });
+
+    /* ═══════════ Live feed ═══════════ */
+    const FRESH_MS = 5 * 60 * 1000;
+    function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+    function renderFeed(docs) {
+      const now = Date.now();
+      const people = docs.map(d => d.data())
+        .filter(p => p.online && p.updatedAt && (now - p.updatedAt.toMillis()) < FRESH_MS);
+      const myBook = isLive ? bookSel.value : null;
+      const myRef  = isLive ? buildRef() : null;
+      people.sort((a, b) => {
+        const am = myBook && a.book === myBook ? 1 : 0;
+        const bm = myBook && b.book === myBook ? 1 : 0;
+        if (am !== bm) return bm - am;
+        return (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0);
+      });
+      onlineCount.textContent = `${people.length} online`;
+      if (people.length === 0) {
+        feedList.innerHTML = `<div class="feed-empty"><p>No one's live yet.<br>
+          <span class="em">Be the first — go live and start the fire.</span> 🕯️</p></div>`;
+        return;
+      }
+      feedList.innerHTML = '';
+      people.forEach(p => {
+        const isMe = p.uid === currentUser.uid;
+        const exactMatch = myRef && p.ref === myRef && !isMe;
+        const bookMatch  = myBook && p.book === myBook && !isMe;
+        const row = document.createElement('div');
+        row.className = 'user-row' + (bookMatch ? ' match' : '');
+        const initial = (p.name || '?').trim().charAt(0).toUpperCase();
+        const avatar = p.photoURL
+          ? `<div class="avatar"><img src="${p.photoURL}" alt="" referrerpolicy="no-referrer"></div>`
+          : `<div class="avatar">${initial}</div>`;
+        let badge = '';
+        if (isMe) badge = `<span class="you-badge">You</span>`;
+        else if (exactMatch) badge = `<span class="match-badge">Same daf!</span>`;
+        else if (bookMatch) badge = `<span class="match-badge">Match</span>`;
+        const metaBits = [];
+        if (p.city) metaBits.push(escapeHtml(p.city));
+        if (p.level) metaBits.push(cap(p.level));
+        const meta = metaBits.join(' · ');
+        const action = isMe
+          ? `<button class="join-btn" disabled>That's you</button>`
+          : `<button class="join-btn" data-name="${escapeHtml(p.name)}">Join</button>`;
+        row.innerHTML = `
+          ${avatar}
+          <div class="user-info">
+            <div class="user-name">${escapeHtml(p.name || 'Anonymous')} ${badge}</div>
+            <div class="user-meta">
+              ${meta ? `<span>${meta}</span><span>·</span>` : ''}
+              <span class="user-topic">${escapeHtml(p.ref)}</span>
+            </div>
+          </div>
+          ${action}`;
+        feedList.appendChild(row);
+      });
+      feedList.querySelectorAll('.join-btn:not([disabled])').forEach(btn => {
+        btn.addEventListener('click', () => {
+          toast(`We'll connect you with ${btn.dataset.name} when live chavruta launches. 🤝`);
+        });
+      });
+    }
+    function startFeed() {
+      if (feedStarted) return;
+      feedStarted = true;
+      onSnapshot(collection(db, 'presence'),
+        (snap) => renderFeed(snap.docs),
+        (err) => { console.error(err); toast('Live feed unavailable — check Firestore rules.'); });
+    }
+
+    /* ═══════════ View switching ═══════════ */
+    function showSignin() {
+      loader.style.display = 'none';
+      onboard.style.display = 'flex';
+      appEl.style.display = 'none';
+      stepSignin.style.display = 'block';
+      stepProfile.style.display = 'none';
+    }
+    function showProfile(user) {
+      loader.style.display = 'none';
+      onboard.style.display = 'flex';
+      appEl.style.display = 'none';
+      stepSignin.style.display = 'none';
+      stepProfile.style.display = 'block';
+      document.getElementById('user-first-name').textContent =
+        (user.displayName?.split(' ')[0]) || 'there';
+    }
+    function enterApp() {
+      loader.style.display = 'none';
+      onboard.style.display = 'none';
+      appEl.style.display = 'block';
+      navName.textContent = (profile.name || currentUser.displayName || 'there').split(' ')[0];
+      startFeed();
+    }
+
+    /* ═══════════ Sign in ═══════════ */
+    signinBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth).catch(() => {});
+        await signInWithRedirect(auth, provider);
+      } catch (e) { console.error(e); }
+    });
+
+    // Surface any redirect errors (the routing itself is handled by onAuthStateChanged).
+    getRedirectResult(auth).catch(e => console.error(e));
+
+    /* ═══════════ Save profile ═══════════ */
+    saveBtn.addEventListener('click', async () => {
+      const city  = document.getElementById('city').value.trim();
+      const level = getSelected('level-chips');
+      const denom = getSelected('denom-chips');
+      const lang  = getSelected('lang-chips');
+      if (!city || !level || !denom || !lang) { errorMsg.style.display = 'block'; return; }
+      errorMsg.style.display = 'none';
+      saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+      try {
+        profile = {
+          uid: currentUser.uid,
+          name: currentUser.displayName,
+          email: currentUser.email,
+          photoURL: currentUser.photoURL,
+          city, level, denomination: denom, language: lang,
+          profileComplete: true,
+          createdAt: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'users', currentUser.uid), profile);
+        enterApp();   // straight into the live app — no extra screen
+      } catch (e) {
+        console.error(e);
+        saveBtn.disabled = false; saveBtn.textContent = 'Save & start learning →';
+        errorMsg.textContent = 'Something went wrong. Please try again.';
+        errorMsg.style.display = 'block';
+      }
+    });
+
+    /* ═══════════ Auth gate / router ═══════════ */
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { showSignin(); return; }
+      currentUser = user;
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists() && snap.data().profileComplete) {
+          profile = snap.data();
+          enterApp();            // returning user → straight to the app
+        } else {
+          showProfile(user);     // new user → set up profile, then auto-enter
+        }
+      } catch (e) {
+        console.error(e);
+        showProfile(user);
+      }
+    });
+
+    signoutBtn.addEventListener('click', async () => {
+      if (isLive) { await stopLive(); }
+      await signOut(auth);
+      window.location.href = 'index.html';
+    });
+  </script>
+
+</body>
+</html>
