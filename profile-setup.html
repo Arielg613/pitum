@@ -305,7 +305,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -367,10 +367,13 @@
       }
     });
 
+    // Handle redirect result on page load
+    getRedirectResult(auth).catch(e => console.error(e));
+
     // Sign in
     signinBtn.addEventListener('click', async () => {
       try {
-        await signInWithPopup(auth, provider);
+        await signInWithRedirect(auth, provider);
       } catch (e) {
         console.error(e);
       }
