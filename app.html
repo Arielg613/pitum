@@ -288,6 +288,25 @@
     .chat-send { background:var(--gold); color:#fff; border:none; border-radius:100px; padding:0 22px; font-weight:500; cursor:pointer; font-size:0.9rem; }
     .chat-send:hover { background:var(--gold-lt); }
 
+    /* ── Library ── */
+    .lib-search { display:flex; align-items:center; gap:10px; background:var(--cream); border:1px solid var(--border); border-radius:14px; padding:6px 6px 6px 16px; }
+    .lib-search .si { font-size:1rem; opacity:.6; }
+    .lib-search input { border:none; background:none; flex:1; padding:11px 0; font-size:0.95rem; color:var(--ink); outline:none; }
+    .lib-go { background:var(--gold); color:#fff; border:none; border-radius:10px; padding:11px 22px; font-weight:600; cursor:pointer; font-family:var(--sans); font-size:0.9rem; }
+    .lib-go:hover { background:var(--gold-lt); }
+    .lib-suggest { display:flex; flex-direction:column; margin-top:6px; }
+    .lib-suggest div { padding:9px 14px; border-radius:9px; cursor:pointer; font-size:0.9rem; color:var(--ink); }
+    .lib-suggest div:hover { background:var(--cream-2); }
+    .lib-suggest .he-s { font-family:'Frank Ruhl Libre',serif; color:var(--gold); margin-right:8px; float:left; }
+    .lib-cats { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .lib-cat { background:var(--cream-2); border:1px solid var(--border); border-radius:100px; padding:9px 18px; cursor:pointer; font-weight:600; font-size:0.88rem; color:var(--ink-soft); font-family:var(--sans); }
+    .lib-cat.active { background:var(--gold-bg); border-color:var(--gold); color:var(--gold); }
+    .lib-books { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:18px; }
+    .lib-book { background:var(--cream); border:1px solid var(--border); border-radius:12px; padding:13px 14px; cursor:pointer; font-family:var(--sans); }
+    .lib-book:hover { border-color:var(--gold); box-shadow:var(--shadow-sm); }
+    .lib-book .he-b { font-family:'Frank Ruhl Libre',serif; font-size:1.2rem; color:var(--ink); text-align:right; line-height:1.4; }
+    .lib-book .en-b { font-size:0.78rem; color:var(--ink-mute); margin-top:2px; }
+
     /* ── Reader (full-screen study view) ── */
     .reader-bg { position:fixed; inset:0; background:var(--cream); display:none; flex-direction:column; z-index:300; }
     .reader-bg.show { display:flex; }
@@ -421,6 +440,9 @@
         <button class="nav-item" data-view="messages">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 01-9 8.4L3 21l1.1-3.3A8.4 8.4 0 1121 11.5z"/></svg>
           Messages <span class="nav-badge" id="badge-messages">0</span></button>
+        <button class="nav-item" data-view="library">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5a2 2 0 012-2h6v18H6a2 2 0 00-2 2z"/><path d="M20 5a2 2 0 00-2-2h-6v18h6a2 2 0 012 2z"/></svg>
+          Library</button>
         <button class="nav-item" data-view="discover">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.5-3.5"/></svg>
           Discover</button>
@@ -521,6 +543,25 @@
           </div>
         </section>
 
+        <!-- ───── LIBRARY ───── -->
+        <section class="view" id="view-library">
+          <div class="view-head"><h1>Library</h1><p>The whole Sefaria library, built in. Search or browse any text and read it instantly.</p></div>
+          <div class="panel" style="margin-bottom:22px;">
+            <div class="lib-search">
+              <span class="si">🔍</span>
+              <input type="text" id="lib-search-input" placeholder="Search any text — e.g. Genesis 1, Berakhot 2a, Rashi on Genesis 1:1, Shulchan Arukh…" autocomplete="off" />
+              <button class="lib-go" id="lib-search-go">Open</button>
+            </div>
+            <div class="lib-suggest" id="lib-suggest"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Browse</div>
+            <div class="panel-sub">Tap a category, then a book, to start reading.</div>
+            <div class="lib-cats" id="lib-cats"></div>
+            <div class="lib-books" id="lib-books"></div>
+          </div>
+        </section>
+
         <!-- ───── DISCOVER ───── -->
         <section class="view" id="view-discover">
           <div class="view-head"><h1>Discover people</h1><p>Find chavrutas by name, city, or what they learn — and send a friend request.</p></div>
@@ -586,6 +627,7 @@
       <button class="mtab active" data-view="learn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5V6a2 2 0 012-2h13v15H6a2 2 0 00-2 2z"/><path d="M19 4v15"/></svg>Learn</button>
       <button class="mtab" data-view="friends"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0111 0"/></svg>Friends<span class="nav-badge" id="badge-friends-m">0</span></button>
       <button class="mtab" data-view="messages"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 01-9 8.4L3 21l1.1-3.3A8.4 8.4 0 1121 11.5z"/></svg>Chat<span class="nav-badge" id="badge-messages-m">0</span></button>
+      <button class="mtab" data-view="library"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5a2 2 0 012-2h6v18H6a2 2 0 00-2 2z"/><path d="M20 5a2 2 0 00-2-2h-6v18h6a2 2 0 012 2z"/></svg>Library</button>
       <button class="mtab" data-view="discover"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.5-3.5"/></svg>Discover</button>
       <button class="mtab" data-view="activity"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17l5-5 4 4 8-8"/></svg>Activity</button>
       <button class="mtab" data-view="settings"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 000-2l1.7-1.3-1.9-3.3-2 .8a7.3 7.3 0 00-1.7-1l-.3-2.1H10.5l-.3 2.1a7.3 7.3 0 00-1.7 1l-2-.8L4.6 9.7 6.3 11a7.6 7.6 0 000 2l-1.7 1.3 1.9 3.3 2-.8a7.3 7.3 0 001.7 1l.3 2.1h3.8l.3-2.1a7.3 7.3 0 001.7-1l2 .8 1.9-3.3z"/></svg>Settings</button>
@@ -1302,9 +1344,12 @@
       return out.replace(/\s+/g,' ').trim();
     }
 
-    async function loadReaderChapter(){
+    // Current ref + the next/prev refs Sefaria gives us — lets us page through ANY text
+    let readerCurRef = null, readerNextRef = null, readerPrevRef = null;
+
+    async function loadReaderRef(){
       const body=$('reader-body'); body.innerHTML='<div class="reader-loading">Loading from Sefaria…</div>';
-      const sRef = buildReaderRef();
+      const sRef = readerCurRef;
       const url = `https://www.sefaria.org/api/texts/${encodeURIComponent(sRef)}?context=0&pad=0&commentary=0`;
       try{
         const res = await fetch(url);
@@ -1313,17 +1358,20 @@
         const flat = (x)=> Array.isArray(x) ? x.flat(Infinity) : (typeof x==='string' ? [x] : []);
         const heArr = flat(data.he);
         const enArr = flat(data.text);
-        const titleEn = data.ref || data.sectionRef || sRef;
-        const titleHe = data.heRef || data.heTitle || '';
-        $('reader-title').textContent = titleEn;
-        $('reader-sub').textContent = titleHe;
+        readerNextRef = data.next || null;
+        readerPrevRef = data.prev || null;
+        $('reader-prev').disabled = !readerPrevRef;
+        $('reader-next').disabled = !readerNextRef;
+        $('reader-title').textContent = data.ref || data.sectionRef || sRef;
+        $('reader-sub').textContent = data.heRef || data.heTitle || '';
         $('reader-sefaria').href = `https://www.sefaria.org/${encodeURIComponent(sRef)}`;
         if(!heArr.length && !enArr.length){ body.innerHTML='<div class="reader-loading">No text found for this section.<br>Try the next/prev section, or a different text.</div>'; return; }
+        // Talmud & Mishnah translations (Steinsaltz) use bold for the literal text
+        const cats = data.categories || [];
+        const keepBold = cats.includes('Talmud') || cats.includes('Mishnah');
         body.innerHTML='';
         const len = Math.max(heArr.length, enArr.length);
         for(let i=0;i<len;i++){
-          // Bold (Steinsaltz literal vs. explanation) only applies to Gemara/Mishna.
-          const keepBold = (readerCategory==='gemara' || readerCategory==='mishna');
           let he=cleanSefaria(heArr[i], keepBold);
           let en=cleanSefaria(enArr[i], keepBold);
           if(!readerTaamim) he=stripTaamim(he);
@@ -1343,9 +1391,18 @@
 
     function openReader(book, loc, cat){
       readerBook=book; readerCategory=cat||'tanach'; readerPos=parseReaderPos(loc);
+      readerCurRef = buildReaderRef();
       $('reader-modal').classList.add('show');
       applyReaderPrefs();
-      loadReaderChapter();
+      loadReaderRef();
+    }
+    // Open any Sefaria ref string directly (used by the Library search/browse)
+    function openReaderRef(ref){
+      if(!ref) return;
+      readerCurRef = ref;
+      $('reader-modal').classList.add('show');
+      applyReaderPrefs();
+      loadReaderRef();
     }
     function closeReader(){ $('reader-modal').classList.remove('show'); }
 
@@ -1376,10 +1433,10 @@
 
     $('reader-close').addEventListener('click', closeReader);
     document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && $('reader-modal').classList.contains('show')) closeReader(); });
-    $('reader-prev').addEventListener('click',()=>{ if(readerPos>readerMinPos()){ readerPos--; loadReaderChapter(); }});
-    $('reader-next').addEventListener('click',()=>{ readerPos++; loadReaderChapter(); });
+    $('reader-prev').addEventListener('click',()=>{ if(readerPrevRef){ readerCurRef=readerPrevRef; loadReaderRef(); }});
+    $('reader-next').addEventListener('click',()=>{ if(readerNextRef){ readerCurRef=readerNextRef; loadReaderRef(); }});
     $('reader-layout').addEventListener('click',()=>{ readerLayout = readerLayout==='side'?'stack':'side'; applyReaderPrefs(); saveReaderPrefs(); });
-    $('reader-taamim').addEventListener('click',()=>{ readerTaamim = !readerTaamim; applyReaderPrefs(); saveReaderPrefs(); loadReaderChapter(); });
+    $('reader-taamim').addEventListener('click',()=>{ readerTaamim = !readerTaamim; applyReaderPrefs(); saveReaderPrefs(); loadReaderRef(); });
     $('reader-bigger').addEventListener('click',()=>{ readerScale=Math.min(2,readerScale+0.12); applyReaderPrefs(); saveReaderPrefs(); });
     $('reader-smaller').addEventListener('click',()=>{ readerScale=Math.max(0.7,readerScale-0.12); applyReaderPrefs(); saveReaderPrefs(); });
     document.querySelectorAll('.rtool[data-lang]').forEach(b=>b.addEventListener('click',()=>{ readerLang=b.dataset.lang; applyReaderPrefs(); saveReaderPrefs(); }));
@@ -1389,6 +1446,72 @@
       if(!book){ toast('Pick a text first.'); return; }
       openReader(book, locationInp.value.trim(), categorySel.value);
     });
+
+    /* ═══════════ LIBRARY (built-in Sefaria browser) ═══════════ */
+    const LIB_CATS = [
+      {key:'tanach', label:'Tanach'},
+      {key:'parsha', label:'Parsha'},
+      {key:'gemara', label:'Talmud'},
+      {key:'mishna', label:'Mishnah'},
+      {key:'rambam', label:'Rambam'}
+    ];
+    let libActiveCat = 'tanach';
+    function renderLibCats(){
+      const el=$('lib-cats'); if(!el) return; el.innerHTML='';
+      LIB_CATS.forEach(c=>{
+        const b=document.createElement('button'); b.className='lib-cat'+(libActiveCat===c.key?' active':'');
+        b.textContent=c.label;
+        b.addEventListener('click',()=>{ libActiveCat=c.key; renderLibCats(); renderLibBooks(); });
+        el.appendChild(b);
+      });
+    }
+    function renderLibBooks(){
+      const el=$('lib-books'); if(!el) return; el.innerHTML='';
+      const cat=LIBRARY[libActiveCat]; if(!cat) return;
+      cat.books.forEach(b=>{
+        if(isHeader(b)) return;
+        const card=document.createElement('button'); card.className='lib-book';
+        card.innerHTML=`<div class="he-b">${HE_NAMES[b]||''}</div><div class="en-b">${escapeHtml(b)}</div>`;
+        card.addEventListener('click',()=>{
+          readerCategory=libActiveCat; readerBook=b; readerPos=parseReaderPos('');
+          openReaderRef(buildReaderRef());
+        });
+        el.appendChild(card);
+      });
+    }
+
+    function libSearch(q){
+      q=(q||'').trim(); if(!q){ toast('Type something to search.'); return; }
+      $('lib-suggest').innerHTML='';
+      openReaderRef(q);   // Sefaria resolves refs like "Genesis 1", "Berakhot 2a", "Rashi on Genesis 1:1"
+    }
+    $('lib-search-go').addEventListener('click',()=>libSearch($('lib-search-input').value));
+    $('lib-search-input').addEventListener('keydown',(e)=>{ if(e.key==='Enter') libSearch(e.target.value); });
+
+    let libSuggestTimer=null;
+    $('lib-search-input').addEventListener('input',(e)=>{
+      clearTimeout(libSuggestTimer);
+      const q=e.target.value.trim();
+      if(q.length<2){ $('lib-suggest').innerHTML=''; return; }
+      libSuggestTimer=setTimeout(()=>fetchLibSuggest(q),250);
+    });
+    async function fetchLibSuggest(q){
+      try{
+        const res=await fetch(`https://www.sefaria.org/api/name/${encodeURIComponent(q)}?limit=8`);
+        if(!res.ok) return;
+        const data=await res.json();
+        const el=$('lib-suggest'); el.innerHTML='';
+        const comps=data.completion_objects||[];
+        comps.slice(0,8).forEach(c=>{
+          const title=c.title||c.key||'';
+          const d=document.createElement('div');
+          d.innerHTML=`${c.he?`<span class="he-s">${escapeHtml(c.he)}</span>`:''}${escapeHtml(title)}`;
+          d.addEventListener('click',()=>{ $('lib-search-input').value=title; $('lib-suggest').innerHTML=''; openReaderRef(title); });
+          el.appendChild(d);
+        });
+      }catch(e){ console.error(e); }
+    }
+    renderLibCats(); renderLibBooks();
 
     /* ═══════════ Firestore listeners (includes chat) ═══════════ */
     function startListeners(){
