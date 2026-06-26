@@ -288,6 +288,28 @@
     .chat-send { background:var(--gold); color:#fff; border:none; border-radius:100px; padding:0 22px; font-weight:500; cursor:pointer; font-size:0.9rem; }
     .chat-send:hover { background:var(--gold-lt); }
 
+    /* ── Video call ── */
+    .call-bg { position:fixed; inset:0; background:#0c0a08; display:none; flex-direction:column; z-index:320; }
+    .call-bg.show { display:flex; }
+    .call { flex:1; display:flex; flex-direction:column; }
+    .call-videos { flex:1; position:relative; overflow:hidden; }
+    #remote-video { width:100%; height:100%; object-fit:cover; background:#16130F; }
+    #local-video { position:absolute; bottom:20px; right:20px; width:170px; max-width:34vw; border-radius:14px; border:2px solid rgba(255,255,255,0.25); object-fit:cover; background:#16130F; box-shadow:0 8px 24px rgba(0,0,0,0.5); }
+    .call-status { position:absolute; top:24px; left:0; right:0; text-align:center; color:#fff; font-size:1.05rem; font-weight:500; text-shadow:0 2px 8px rgba(0,0,0,0.6); pointer-events:none; }
+    .call-controls { display:flex; justify-content:center; gap:18px; padding:22px; background:#0c0a08; }
+    .call-btn { width:58px; height:58px; border-radius:50%; border:none; cursor:pointer; font-size:1.4rem; background:rgba(255,255,255,0.14); color:#fff; display:inline-flex; align-items:center; justify-content:center; transition:background 0.15s; }
+    .call-btn:hover { background:rgba(255,255,255,0.24); }
+    .call-btn.off { background:#fff; }
+    .call-btn.hangup { background:var(--red); }
+    .call-btn.hangup:hover { background:#d84a3a; }
+    .call-btn.accept { background:var(--green); }
+    .incoming-call { position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-160%); display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px 16px; box-shadow:var(--shadow); z-index:330; transition:transform 0.3s ease; max-width:92vw; }
+    .incoming-call.show { transform:translateX(-50%) translateY(0); }
+    .incoming-call .ic-text { margin-right:6px; }
+    .incoming-call .ic-name { font-weight:600; font-size:0.95rem; color:var(--ink); }
+    .incoming-call .ic-sub { font-size:0.78rem; color:var(--ink-mute); }
+    .incoming-call .call-btn { width:46px; height:46px; font-size:1.15rem; }
+
     /* ── Library ── */
     .lib-search { display:flex; align-items:center; gap:10px; background:var(--cream); border:1px solid var(--border); border-radius:14px; padding:6px 6px 6px 16px; }
     .lib-search .si { font-size:1rem; opacity:.6; }
@@ -644,6 +666,7 @@
       <div class="modal-actions">
         <button class="btn-out" id="jm-close" style="border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);">Close</button>
         <button class="btn-out" id="jm-msg" style="border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);">Message</button>
+        <button class="btn-out" id="jm-call" style="border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);">📹 Call</button>
         <button class="btn-gold" id="jm-add" style="background:var(--gold);color:#fff;">Add friend</button>
       </div>
     </div>
@@ -677,6 +700,30 @@
         <button id="reader-next">Next →</button>
       </div>
     </div>
+  </div>
+
+  <!-- Video call -->
+  <div class="call-bg" id="call-modal">
+    <div class="call">
+      <div class="call-videos">
+        <video id="remote-video" autoplay playsinline></video>
+        <video id="local-video" autoplay playsinline muted></video>
+        <div class="call-status" id="call-info">Connecting…</div>
+      </div>
+      <div class="call-controls">
+        <button class="call-btn" id="call-mute" title="Mute">🎤</button>
+        <button class="call-btn" id="call-cam" title="Camera">📹</button>
+        <button class="call-btn hangup" id="call-hangup" title="Hang up">📞</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incoming call banner -->
+  <div class="incoming-call" id="incoming-call">
+    <div class="avatar sm" id="ic-avatar">?</div>
+    <div class="ic-text"><div class="ic-name" id="ic-name">Someone</div><div class="ic-sub">Incoming video call…</div></div>
+    <button class="call-btn accept" id="ic-accept" title="Accept">📹</button>
+    <button class="call-btn hangup" id="ic-decline" title="Decline">📞</button>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -944,8 +991,9 @@
           const meta=[info.city&&escapeHtml(info.city), info.level&&cap(info.level)].filter(Boolean).join(' · ');
           const learning = online ? `<span class="user-topic">${escapeHtml(pres.ref)}</span>` : '<span class="user-meta">Offline</span>';
           const join = online ? `<button class="btn-sm btn-gold join-one">Join</button>` : '';
-          row.innerHTML=`${avatarHtml(info.name,info.photoURL,'',online)}<div class="user-info"><div class="user-name">${escapeHtml(info.name||'Friend')} ${online?'<span class="badge-pill badge-green">Live</span>':''}</div><div class="user-meta">${meta?`<span>${meta}</span><span>·</span>`:''}${learning}</div></div><div class="row-actions">${join}<button class="btn-sm btn-out msg-one">💬</button><button class="btn-sm btn-danger rm">Remove</button></div>`;
+          row.innerHTML=`${avatarHtml(info.name,info.photoURL,'',online)}<div class="user-info"><div class="user-name">${escapeHtml(info.name||'Friend')} ${online?'<span class="badge-pill badge-green">Live</span>':''}</div><div class="user-meta">${meta?`<span>${meta}</span><span>·</span>`:''}${learning}</div></div><div class="row-actions">${join}<button class="btn-sm btn-out call-one" title="Video call">📹</button><button class="btn-sm btn-out msg-one">💬</button><button class="btn-sm btn-danger rm">Remove</button></div>`;
           if(online) row.querySelector('.join-one')?.addEventListener('click',()=>openJoin(pres));
+          row.querySelector('.call-one').addEventListener('click',()=>startCall(uid, info.name||'Friend', info.photoURL||''));
           row.querySelector('.msg-one').addEventListener('click',()=>startChat(uid, info.name||'Friend', info.photoURL||''));
           row.querySelector('.rm').addEventListener('click',()=>removeFriend(uid));
           fl.appendChild(row);
@@ -1548,6 +1596,97 @@
     }
     renderLibCats(); renderLibBooks();
 
+    /* ═══════════ VIDEO CALLING (WebRTC + Firestore signaling) ═══════════ */
+    const ICE_CONFIG = { iceServers:[{ urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302'] }] };
+    let pc=null, localStream=null, remoteStream=null, activeCallId=null, callUnsubs=[];
+    let incomingCallId=null, incomingData=null;
+
+    async function getLocalMedia(){
+      localStream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
+      $('local-video').srcObject = localStream;
+    }
+    function setupPc(){
+      pc = new RTCPeerConnection(ICE_CONFIG);
+      remoteStream = new MediaStream();
+      $('remote-video').srcObject = remoteStream;
+      localStream.getTracks().forEach(t=>pc.addTrack(t, localStream));
+      pc.ontrack = (e)=>{ e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t)); $('call-info').textContent='Connected'; };
+    }
+
+    async function startCall(uid, name, photo){
+      if(activeCallId){ toast('Already in a call.'); return; }
+      try{ await getLocalMedia(); }catch(e){ toast('Allow camera & mic to call.'); return; }
+      setupPc();
+      $('call-modal').classList.add('show'); $('call-info').textContent='Calling '+(name||'')+'…';
+      const callRef = doc(collection(db,'calls'));
+      activeCallId = callRef.id;
+      const callerCands = collection(callRef,'callerCandidates');
+      const calleeCands = collection(callRef,'calleeCandidates');
+      pc.onicecandidate = (e)=>{ if(e.candidate) addDoc(callerCands, e.candidate.toJSON()); };
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await setDoc(callRef,{ caller:currentUser.uid, callee:uid, callerName:profile?.name||currentUser.displayName||'', callerPhoto:currentUser.photoURL||'', offer:{type:offer.type,sdp:offer.sdp}, status:'ringing', createdAt:serverTimestamp() });
+      callUnsubs.push(onSnapshot(callRef,(snap)=>{
+        const d=snap.data(); if(!d) return;
+        if(d.answer && pc && !pc.currentRemoteDescription){ pc.setRemoteDescription(new RTCSessionDescription(d.answer)); }
+        if(d.status==='ended' || d.status==='declined'){ if(d.status==='declined') toast('Call declined.'); endCall(false); }
+      }));
+      callUnsubs.push(onSnapshot(calleeCands,(snap)=>{ snap.docChanges().forEach(c=>{ if(c.type==='added'&&pc) pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{}); }); }));
+    }
+
+    async function answerCall(callId, data){
+      try{ await getLocalMedia(); }catch(e){ toast('Allow camera & mic to answer.'); return; }
+      setupPc();
+      $('call-modal').classList.add('show'); $('call-info').textContent='Connecting…';
+      activeCallId=callId;
+      const callRef=doc(db,'calls',callId);
+      const callerCands=collection(callRef,'callerCandidates');
+      const calleeCands=collection(callRef,'calleeCandidates');
+      pc.onicecandidate=(e)=>{ if(e.candidate) addDoc(calleeCands, e.candidate.toJSON()); };
+      await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+      const answer=await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await updateDoc(callRef,{ answer:{type:answer.type,sdp:answer.sdp}, status:'active' });
+      callUnsubs.push(onSnapshot(callerCands,(snap)=>{ snap.docChanges().forEach(c=>{ if(c.type==='added'&&pc) pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{}); }); }));
+      callUnsubs.push(onSnapshot(callRef,(snap)=>{ const d=snap.data(); if(d && d.status==='ended') endCall(false); }));
+    }
+
+    async function endCall(notify){
+      if(notify && activeCallId){ try{ await updateDoc(doc(db,'calls',activeCallId),{status:'ended'}); }catch(e){} }
+      callUnsubs.forEach(u=>{ try{u();}catch(e){} }); callUnsubs=[];
+      if(pc){ try{pc.close();}catch(e){} pc=null; }
+      if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
+      remoteStream=null;
+      $('call-modal').classList.remove('show');
+      $('local-video').srcObject=null; $('remote-video').srcObject=null;
+      activeCallId=null;
+    }
+
+    function startCallListener(){
+      onSnapshot(query(collection(db,'calls'), where('callee','==',currentUser.uid), where('status','==','ringing')),(snap)=>{
+        snap.docChanges().forEach(c=>{
+          if(c.type==='added' && !activeCallId && !incomingCallId){
+            incomingCallId=c.doc.id; incomingData=c.doc.data();
+            $('ic-name').textContent=incomingData.callerName||'Someone';
+            $('ic-avatar').innerHTML = incomingData.callerPhoto?`<img src="${escapeHtml(incomingData.callerPhoto)}" referrerpolicy="no-referrer">`:(incomingData.callerName||'?').charAt(0).toUpperCase();
+            $('incoming-call').classList.add('show');
+          }
+          if(c.type==='removed' && c.doc.id===incomingCallId){ // caller canceled before pickup
+            incomingCallId=null; $('incoming-call').classList.remove('show');
+          }
+        });
+      },(e)=>console.error('call listener:',e));
+    }
+
+    $('ic-accept').addEventListener('click',()=>{ $('incoming-call').classList.remove('show'); const id=incomingCallId, d=incomingData; incomingCallId=null; answerCall(id,d); });
+    $('ic-decline').addEventListener('click',async()=>{ $('incoming-call').classList.remove('show'); const id=incomingCallId; incomingCallId=null; if(id){ try{ await updateDoc(doc(db,'calls',id),{status:'declined'}); }catch(e){} } });
+    $('call-hangup').addEventListener('click',()=>endCall(true));
+    $('call-mute').addEventListener('click',()=>{ if(!localStream)return; const t=localStream.getAudioTracks()[0]; if(t){ t.enabled=!t.enabled; $('call-mute').classList.toggle('off',!t.enabled); } });
+    $('call-cam').addEventListener('click',()=>{ if(!localStream)return; const t=localStream.getVideoTracks()[0]; if(t){ t.enabled=!t.enabled; $('call-cam').classList.toggle('off',!t.enabled); } });
+
+    // Join modal "Call" button
+    $('jm-call')?.addEventListener('click',()=>{ if(joinTarget){ $('join-modal').classList.remove('show'); startCall(joinTarget.uid, joinTarget.name, joinTarget.photoURL); } });
+
     /* ═══════════ Firestore listeners (includes chat) ═══════════ */
     function startListeners(){
       if(listenersStarted)return; listenersStarted=true;
@@ -1558,6 +1697,7 @@
       onSnapshot(collection(db,'users'),(s)=>{ allUsers=s.docs.map(d=>d.data()); renderDiscover(); },(e)=>console.error(e));
       onSnapshot(collection(db,'users',currentUser.uid,'sessions'),(s)=>{ sessionsList=s.docs.map(d=>d.data()); renderActivity(); },(e)=>console.error(e));
       startChatListeners();
+      startCallListener();
     }
   </script>
 
