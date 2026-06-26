@@ -1456,6 +1456,39 @@
       {key:'rambam', label:'Rambam'}
     ];
     let libActiveCat = 'tanach';
+
+    // Parshiyot → opening chapter ref in the Torah
+    const PARSHA_OPEN = {
+      "Bereshit":"Genesis 1","Noach":"Genesis 6","Lech-Lecha":"Genesis 12","Vayera":"Genesis 18","Chayei Sara":"Genesis 23",
+      "Toldot":"Genesis 25","Vayetzei":"Genesis 28","Vayishlach":"Genesis 32","Vayeshev":"Genesis 37","Miketz":"Genesis 41",
+      "Vayigash":"Genesis 44","Vayechi":"Genesis 47","Shemot":"Exodus 1","Vaera":"Exodus 6","Bo":"Exodus 10","Beshalach":"Exodus 13",
+      "Yitro":"Exodus 18","Mishpatim":"Exodus 21","Terumah":"Exodus 25","Tetzaveh":"Exodus 27","Ki Tisa":"Exodus 30",
+      "Vayakhel":"Exodus 35","Pekudei":"Exodus 38","Vayikra":"Leviticus 1","Tzav":"Leviticus 6","Shmini":"Leviticus 9",
+      "Tazria":"Leviticus 12","Metzora":"Leviticus 14","Achrei Mot":"Leviticus 16","Kedoshim":"Leviticus 19","Emor":"Leviticus 21",
+      "Behar":"Leviticus 25","Bechukotai":"Leviticus 26","Bamidbar":"Numbers 1","Nasso":"Numbers 4","Behaalotcha":"Numbers 8",
+      "Shlach":"Numbers 13","Korach":"Numbers 16","Chukat":"Numbers 19","Balak":"Numbers 22","Pinchas":"Numbers 25",
+      "Matot":"Numbers 30","Masei":"Numbers 33","Devarim":"Deuteronomy 1","Vaetchanan":"Deuteronomy 3","Eikev":"Deuteronomy 7",
+      "Re'eh":"Deuteronomy 11","Shoftim":"Deuteronomy 16","Ki Teitzei":"Deuteronomy 21","Ki Tavo":"Deuteronomy 26",
+      "Nitzavim":"Deuteronomy 29","Vayeilech":"Deuteronomy 31","Haazinu":"Deuteronomy 32","Vezot Haberachah":"Deuteronomy 33"
+    };
+    // Mishneh Torah books → opening section (first set of halachot)
+    const RAMBAM_OPEN = {
+      "Sefer HaMadda":"Mishneh Torah, Foundations of the Torah 1",
+      "Sefer Ahavah":"Mishneh Torah, Reading the Shema 1",
+      "Sefer Zemanim":"Mishneh Torah, Sabbath 1",
+      "Sefer Nashim":"Mishneh Torah, Marriage 1",
+      "Sefer Kedushah":"Mishneh Torah, Forbidden Intercourse 1",
+      "Sefer Haflaah":"Mishneh Torah, Oaths 1",
+      "Sefer Zeraim":"Mishneh Torah, Diverse Species 1",
+      "Sefer Avodah":"Mishneh Torah, The Chosen Temple 1",
+      "Sefer Korbanot":"Mishneh Torah, Paschal Offering 1",
+      "Sefer Taharah":"Mishneh Torah, Defilement by a Corpse 1",
+      "Sefer Nezikin":"Mishneh Torah, Damages to Property 1",
+      "Sefer Kinyan":"Mishneh Torah, Sales 1",
+      "Sefer Mishpatim":"Mishneh Torah, Hiring 1",
+      "Sefer Shofetim":"Mishneh Torah, Sanhedrin and the Penalties within their Jurisdiction 1"
+    };
+
     function renderLibCats(){
       const el=$('lib-cats'); if(!el) return; el.innerHTML='';
       LIB_CATS.forEach(c=>{
@@ -1470,11 +1503,16 @@
       const cat=LIBRARY[libActiveCat]; if(!cat) return;
       cat.books.forEach(b=>{
         if(isHeader(b)) return;
+        const he=HE_NAMES[b];
         const card=document.createElement('button'); card.className='lib-book';
-        card.innerHTML=`<div class="he-b">${HE_NAMES[b]||''}</div><div class="en-b">${escapeHtml(b)}</div>`;
+        card.innerHTML = he ? `<div class="he-b">${he}</div><div class="en-b">${escapeHtml(b)}</div>`
+                            : `<div class="he-b" style="font-family:var(--serif);font-size:0.98rem;text-align:left">${escapeHtml(b)}</div>`;
         card.addEventListener('click',()=>{
-          readerCategory=libActiveCat; readerBook=b; readerPos=parseReaderPos('');
-          openReaderRef(buildReaderRef());
+          let ref;
+          if(libActiveCat==='parsha')      ref = PARSHA_OPEN[b];
+          else if(libActiveCat==='rambam') ref = RAMBAM_OPEN[b];
+          else { readerCategory=libActiveCat; readerBook=b; readerPos=parseReaderPos(''); ref = buildReaderRef(); }
+          openReaderRef(ref || b);
         });
         el.appendChild(card);
       });
