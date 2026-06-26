@@ -289,22 +289,25 @@
     .chat-send:hover { background:var(--gold-lt); }
 
     /* ── Video call ── */
-    .call-bg { position:fixed; inset:0; background:#0c0a08; display:none; flex-direction:column; z-index:320; }
+    .call-bg { position:fixed; inset:0; background:#0a0a0c; display:none; z-index:320; padding:14px; padding-bottom:calc(14px + env(safe-area-inset-bottom,0px)); padding-top:calc(14px + env(safe-area-inset-top,0px)); }
     .call-bg.show { display:flex; }
-    .call { flex:1; display:flex; flex-direction:column; min-height:0; }
+    .call { flex:1; position:relative; display:flex; min-height:0; border-radius:24px; overflow:hidden; background:#000; }
     .call-videos { flex:1; position:relative; overflow:hidden; background:#000; min-height:0; }
     #remote-video { width:100%; height:100%; object-fit:contain; background:#000; cursor:pointer; }
     #remote-video.fill { object-fit:cover; }
-    #local-video { position:absolute; bottom:18px; right:18px; width:30vw; max-width:200px; aspect-ratio:3/4; border-radius:14px; border:2px solid rgba(255,255,255,0.3); object-fit:cover; background:#16130F; box-shadow:0 8px 24px rgba(0,0,0,0.5); transform:scaleX(-1); }
-    .call-status { position:absolute; top:calc(18px + env(safe-area-inset-top,0px)); left:0; right:0; text-align:center; color:#fff; font-size:1.05rem; font-weight:500; text-shadow:0 2px 8px rgba(0,0,0,0.7); pointer-events:none; }
-    .call-controls { display:flex; justify-content:center; gap:22px; padding:20px 20px calc(24px + env(safe-area-inset-bottom,0px)); background:#0c0a08; flex-shrink:0; z-index:2; }
-    .call-btn { width:62px; height:62px; border-radius:50%; border:none; cursor:pointer; font-size:1.5rem; background:rgba(255,255,255,0.16); color:#fff; display:inline-flex; align-items:center; justify-content:center; transition:background 0.15s, transform 0.1s; }
-    .call-btn:hover { background:rgba(255,255,255,0.26); }
-    .call-btn:active { transform:scale(0.92); }
+    #local-video { position:absolute; bottom:18px; right:18px; width:26vw; max-width:190px; aspect-ratio:3/4; border-radius:18px; border:1px solid rgba(255,255,255,0.18); object-fit:cover; background:#16130F; box-shadow:0 10px 30px rgba(0,0,0,0.55); transform:scaleX(-1); cursor:grab; z-index:3; }
+    #local-video:active { cursor:grabbing; }
+    .call-status { position:absolute; top:20px; left:0; right:0; text-align:center; color:#fff; font-size:1.02rem; font-weight:500; letter-spacing:0.01em; text-shadow:0 2px 12px rgba(0,0,0,0.7); pointer-events:none; z-index:3; }
+    .call-controls { position:absolute; bottom:22px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:16px; padding:11px 16px; background:rgba(30,28,26,0.5); backdrop-filter:blur(24px) saturate(1.4); -webkit-backdrop-filter:blur(24px) saturate(1.4); border:1px solid rgba(255,255,255,0.12); border-radius:100px; box-shadow:0 10px 40px rgba(0,0,0,0.5); z-index:4; transition:opacity 0.3s, transform 0.3s; }
+    .call.controls-hidden .call-controls { opacity:0; transform:translateX(-50%) translateY(12px); pointer-events:none; }
+    .call-btn { width:56px; height:56px; border-radius:50%; border:none; cursor:pointer; font-size:1.4rem; background:rgba(255,255,255,0.16); color:#fff; display:inline-flex; align-items:center; justify-content:center; transition:background 0.15s, transform 0.1s; }
+    .call-btn:hover { background:rgba(255,255,255,0.28); }
+    .call-btn:active { transform:scale(0.9); }
     .call-btn.off { background:#fff; color:#0c0a08; }
     .call-btn.hangup { background:var(--red); }
-    .call-btn.hangup:hover { background:#d84a3a; }
+    .call-btn.hangup:hover { background:#e05444; }
     .call-btn.accept { background:var(--green); }
+    @media (max-width:760px){ .call-bg{ padding:0; } .call{ border-radius:0; } }
     .incoming-call { position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-160%); display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px 16px; box-shadow:var(--shadow); z-index:330; transition:transform 0.3s ease; max-width:92vw; }
     .incoming-call.show { transform:translateX(-50%) translateY(0); }
     .incoming-call .ic-text { margin-right:6px; }
@@ -1645,7 +1648,7 @@
       try{ await getLocalMedia(); }catch(e){ toast('Allow camera & mic to call.'); return; }
       setupPc();
       resetLocalVideoPos();
-      $('call-modal').classList.add('show'); $('call-info').textContent='Calling '+(name||'')+'…';
+      $('call-modal').classList.add('show'); showCallControls(); $('call-info').textContent='Calling '+(name||'')+'…';
       const callRef = doc(collection(db,'calls'));
       activeCallId = callRef.id;
       const callerCands = collection(callRef,'callerCandidates');
@@ -1667,7 +1670,7 @@
       try{ await getLocalMedia(); }catch(e){ toast('Allow camera & mic to answer.'); return; }
       setupPc();
       resetLocalVideoPos();
-      $('call-modal').classList.add('show'); $('call-info').textContent='Connecting…';
+      $('call-modal').classList.add('show'); showCallControls(); $('call-info').textContent='Connecting…';
       activeCallId=callId;
       const callRef=doc(db,'calls',callId);
       const callerCands=collection(callRef,'callerCandidates');
@@ -1722,6 +1725,15 @@
 
     // Tap the remote video to toggle fit-whole-frame vs fill-screen
     $('remote-video').addEventListener('click',()=>$('remote-video').classList.toggle('fill'));
+
+    // Auto-hide controls when idle (reappear on movement), like FaceTime
+    let callHideTimer=null;
+    function showCallControls(){
+      const c=document.querySelector('.call'); if(!c) return;
+      c.classList.remove('controls-hidden'); clearTimeout(callHideTimer);
+      callHideTimer=setTimeout(()=>{ if(activeCallId) c.classList.add('controls-hidden'); }, 3500);
+    }
+    (function(){ const c=document.querySelector('.call'); if(c) ['mousemove','touchstart','click'].forEach(ev=>c.addEventListener(ev,showCallControls)); })();
 
     /* Draggable self-view (FaceTime-style: drag anywhere, snaps to nearest corner) */
     function resetLocalVideoPos(){ const v=$('local-video'); v.style.left=v.style.top='auto'; v.style.right='18px'; v.style.bottom='18px'; v.style.transition=''; }
