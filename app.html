@@ -599,7 +599,10 @@
         <section class="view" id="view-library">
           <div class="view-head"><h1>Library</h1><p>The whole Sefaria library, built in. Search or browse any text and read it instantly.</p></div>
           <div class="panel" style="margin-bottom:22px;">
-            <div class="panel-title">Today's learning 🗓️</div>
+            <div class="row-between" style="align-items:baseline;">
+              <div class="panel-title" style="margin:0;">Today's learning 🗓️</div>
+              <div id="today-hebdate" style="font-family:'Frank Ruhl Libre',serif;color:var(--gold);font-size:1.05rem;direction:rtl;"></div>
+            </div>
             <div class="panel-sub">The daily cycle — tap to open.</div>
             <div class="lib-today" id="lib-today"><span class="muted">Loading today's schedule…</span></div>
           </div>
@@ -636,6 +639,10 @@
             <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Total sessions</div><div class="sub">All time</div></div>
             <div class="stat"><div class="num" id="stat-week">0</div><div class="lbl">This week</div><div class="sub">Last 7 days</div></div>
             <div class="stat"><div class="num" id="stat-days">0</div><div class="lbl">Days learned</div><div class="sub">Unique days</div></div>
+          </div>
+          <div class="panel" id="missed-panel" style="display:none; margin-bottom:22px;">
+            <div class="row-between" style="margin-bottom:6px;"><div class="panel-title" style="margin:0;">Missed calls 📞</div><button class="btn-sm btn-out" id="missed-clear">Clear</button></div>
+            <div class="list" id="missed-list"></div>
           </div>
           <div class="panel">
             <div class="panel-title">Recent sessions</div>
@@ -1133,7 +1140,8 @@
       $('pm-name').textContent=u.name||'Learner';
       $('pm-meta').textContent=[u.city, u.level&&cap(u.level), u.denomination&&cap(u.denomination), u.language&&cap(u.language)].filter(Boolean).join(' · ');
       $('pm-status').textContent = live?`🕯️ Learning ${u.uid&&pres?pres.ref:''}`: pres?'🟢 Online now':'Offline';
-      $('pm-bio').textContent=u.bio||'';
+      const tog=togetherCount(u.uid);
+      $('pm-bio').innerHTML = `${u.bio?escapeHtml(u.bio):''}${tog>0?`<div style="margin-top:8px;color:var(--gold);font-weight:600;">📖 Learned together ${tog} time${tog>1?'s':''}</div>`:''}`;
       const st=friendState(u.uid), self=u.uid===currentUser.uid;
       $('pm-add').textContent = self?'This is you':st==='friends'?'Friends ✓':st==='requested'?'Requested':st==='incoming'?'Accept':'Add friend';
       $('pm-add').disabled = (self||st==='friends'||st==='requested');
@@ -1157,6 +1165,7 @@
       return streak;
     }
     function renderActivity(){
+      renderMissedCalls();
       const dates=sessionsList.map(s=>s.startedAt?.toDate?.()).filter(Boolean);
       $('stat-total').textContent=sessionsList.length;
       const weekAgo=Date.now()-7*86400000;
@@ -1737,6 +1746,7 @@
     async function loadTodayLearning(){
       const el=$('lib-today'); if(!el) return;
       const tz=userTz(); todayLoadedKey=dateKeyInTz(tz);
+      try{ const hd=$('today-hebdate'); if(hd) hd.textContent=new Intl.DateTimeFormat('he-u-ca-hebrew',{ timeZone:tz, day:'numeric', month:'long', year:'numeric' }).format(new Date()); }catch(e){}
       const custom = (profile&&(profile.denomination==='sefard'||profile.denomination==='sefardi')) ? 'sephardi' : 'ashkenazi';
       const diaspora = (tz==='Asia/Jerusalem') ? 0 : 1;
       try{
@@ -1787,13 +1797,14 @@
       remoteStream = new MediaStream();
       $('remote-video').srcObject = remoteStream;
       localStream.getTracks().forEach(t=>pc.addTrack(t, localStream));
-      pc.ontrack = (e)=>{ e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t)); $('call-info').textContent='Connected'; };
+      pc.ontrack = (e)=>{ e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t)); $('call-info').textContent='Connected'; callConnected=true; };
     }
 
+    let callConnected=false, callPartner=null;
     async function startCall(uid, name, photo){
       if(activeCallId){ toast('Already in a call.'); return; }
       try{ await getLocalMedia(); }catch(e){ toast('Allow camera & mic to call.'); return; }
-      setupPc();
+      setupPc(); callConnected=false; callPartner={ uid, name, photoURL:photo };
       resetLocalVideoPos();
       $('call-modal').classList.add('show'); showCallControls(); $('call-info').textContent='Calling '+(name||'')+'…';
       const callRef = doc(collection(db,'calls'));
@@ -1816,7 +1827,7 @@
 
     async function answerCall(callId, data){
       try{ await getLocalMedia(); }catch(e){ toast('Allow camera & mic to answer.'); return; }
-      setupPc();
+      setupPc(); callConnected=false; callPartner={ uid:data.caller, name:data.callerName, photoURL:data.callerPhoto };
       resetLocalVideoPos();
       $('call-modal').classList.add('show'); showCallControls(); $('call-info').textContent='Connecting…';
       activeCallId=callId;
@@ -1854,10 +1865,52 @@
       $('local-video').srcObject=null; $('remote-video').srcObject=null;
       $('call-mute').classList.remove('off'); $('call-cam').classList.remove('off');
       activeCallId=null;
+      // Count this as a "learned together" session if the call actually connected
+      if(callConnected && callPartner){ bumpTogether(callPartner.uid); }
+      callConnected=false; callPartner=null;
       // Tell the other side by deleting the call doc — their listener ends too
       if(notify && id){ try{ await deleteDoc(doc(db,'calls',id)); }catch(e){} }
       ending=false;
     }
+
+    // Ringtone (synthesised — no audio file needed)
+    let ringCtx=null, ringTimer=null;
+    function startRing(){
+      stopRing();
+      try{
+        ringCtx = new (window.AudioContext||window.webkitAudioContext)();
+        if(ringCtx.state==='suspended') ringCtx.resume().catch(()=>{});
+        const beep=(t,f)=>{ const o=ringCtx.createOscillator(), g=ringCtx.createGain(); o.connect(g); g.connect(ringCtx.destination); o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.22,t+0.04); g.gain.exponentialRampToValueAtTime(0.0001,t+0.4); o.start(t); o.stop(t+0.42); };
+        const ring=()=>{ const t=ringCtx.currentTime; beep(t,523); beep(t+0.45,659); };
+        ring(); ringTimer=setInterval(ring, 2200);
+      }catch(e){}
+    }
+    function stopRing(){ if(ringTimer){ clearInterval(ringTimer); ringTimer=null; } if(ringCtx){ try{ ringCtx.close(); }catch(e){} ringCtx=null; } }
+
+    // Missed-call log + "learned together" counter (per-device, localStorage)
+    function logMissedCall(data){
+      if(!currentUser||!data) return;
+      try{ const k='pitom_missed_'+currentUser.uid; const list=JSON.parse(localStorage.getItem(k)||'[]');
+        list.unshift({ uid:data.caller, name:data.callerName||'Someone', photoURL:data.callerPhoto||'', at:Date.now() });
+        localStorage.setItem(k, JSON.stringify(list.slice(0,30))); renderMissedCalls();
+      }catch(e){}
+    }
+    function bumpTogether(uid){ if(!currentUser||!uid) return; try{ const k='pitom_together_'+currentUser.uid+'_'+uid; localStorage.setItem(k,(parseInt(localStorage.getItem(k))||0)+1); }catch(e){} }
+    function togetherCount(uid){ try{ return parseInt(localStorage.getItem('pitom_together_'+currentUser.uid+'_'+uid))||0; }catch(e){ return 0; } }
+    function renderMissedCalls(){
+      const el=$('missed-list'), panel=$('missed-panel'); if(!el||!panel) return;
+      let list=[]; try{ list=JSON.parse(localStorage.getItem('pitom_missed_'+currentUser.uid)||'[]'); }catch(e){}
+      if(!list.length){ panel.style.display='none'; return; }
+      panel.style.display='block'; el.innerHTML='';
+      list.slice(0,15).forEach(m=>{
+        const row=document.createElement('div'); row.className='user-row';
+        row.innerHTML=`${avatarHtml(m.name,m.photoURL)}<div class="user-info"><div class="user-name">${escapeHtml(m.name)}</div><div class="user-meta"><span style="color:var(--red)">📞 Missed call</span><span>·</span><span>${escapeHtml(timeAgo(new Date(m.at)))}</span></div></div><div class="row-actions"><button class="btn-sm btn-gold cb">📹 Call back</button></div>`;
+        row.querySelector('.cb').addEventListener('click',()=>startCall(m.uid, m.name, m.photoURL));
+        el.appendChild(row);
+      });
+    }
+    function clearMissedCalls(){ try{ localStorage.removeItem('pitom_missed_'+currentUser.uid); }catch(e){} renderMissedCalls(); }
+    $('missed-clear')?.addEventListener('click', clearMissedCalls);
 
     function startCallListener(){
       onSnapshot(query(collection(db,'calls'), where('callee','==',currentUser.uid), where('status','==','ringing')),(snap)=>{
@@ -1866,18 +1919,19 @@
             incomingCallId=c.doc.id; incomingData=c.doc.data();
             $('ic-name').textContent=incomingData.callerName||'Someone';
             $('ic-avatar').innerHTML = incomingData.callerPhoto?`<img src="${escapeHtml(incomingData.callerPhoto)}" referrerpolicy="no-referrer">`:(incomingData.callerName||'?').charAt(0).toUpperCase();
-            $('incoming-call').classList.add('show');
+            $('incoming-call').classList.add('show'); startRing();
             notify('📹 Incoming video call', (incomingData.callerName||'Someone')+' is calling you');
           }
-          if(c.type==='removed' && c.doc.id===incomingCallId){ // caller canceled before pickup
-            incomingCallId=null; $('incoming-call').classList.remove('show');
+          if(c.type==='removed' && c.doc.id===incomingCallId){ // caller canceled before pickup → missed
+            logMissedCall(incomingData);
+            incomingCallId=null; $('incoming-call').classList.remove('show'); stopRing();
           }
         });
       },(e)=>console.error('call listener:',e));
     }
 
-    $('ic-accept').addEventListener('click',()=>{ $('incoming-call').classList.remove('show'); const id=incomingCallId, d=incomingData; incomingCallId=null; answerCall(id,d); });
-    $('ic-decline').addEventListener('click',async()=>{ $('incoming-call').classList.remove('show'); const id=incomingCallId; incomingCallId=null; if(id){ try{ await updateDoc(doc(db,'calls',id),{status:'declined'}); }catch(e){} } });
+    $('ic-accept').addEventListener('click',()=>{ stopRing(); $('incoming-call').classList.remove('show'); const id=incomingCallId, d=incomingData; incomingCallId=null; answerCall(id,d); });
+    $('ic-decline').addEventListener('click',async()=>{ stopRing(); $('incoming-call').classList.remove('show'); const id=incomingCallId; incomingCallId=null; if(id){ try{ await updateDoc(doc(db,'calls',id),{status:'declined'}); }catch(e){} } });
     $('call-hangup').addEventListener('click',(e)=>{ e.stopPropagation(); endCall(true); });
     $('call-learn').addEventListener('click',(e)=>{ e.stopPropagation(); minimizeCall(); switchView('library'); toast('Pick a text — your chavruta will see it too 📖'); });
     $('call-mute').addEventListener('click',()=>{ if(!localStream)return; const t=localStream.getAudioTracks()[0]; if(t){ t.enabled=!t.enabled; $('call-mute').classList.toggle('off',!t.enabled); } });
