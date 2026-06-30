@@ -330,6 +330,20 @@
     @keyframes ring-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(39,201,63,0.5); } 50%{ box-shadow:0 0 0 8px rgba(39,201,63,0); } }
     .incoming-call .call-btn.accept { animation:ring-pulse 1.4s ease-in-out infinite; }
 
+    /* ── Group room ── */
+    .room-top { display:flex; align-items:center; justify-content:center; gap:10px; padding:14px; color:#fff; font-weight:600; }
+    .room-count { background:rgba(255,255,255,0.15); border-radius:100px; padding:3px 10px; font-size:0.8rem; font-weight:500; }
+    .room-grid { flex:1; display:grid; gap:8px; padding:0 10px 6px; min-height:0; align-content:center;
+      grid-template-columns:1fr; }
+    .room-grid.g2 { grid-template-columns:1fr 1fr; }
+    .room-grid.g3, .room-grid.g4 { grid-template-columns:1fr 1fr; }
+    .room-grid.g5, .room-grid.g6 { grid-template-columns:1fr 1fr 1fr; }
+    .room-tile { position:relative; background:#16130F; border-radius:14px; overflow:hidden; min-height:0; aspect-ratio:4/3; }
+    .room-tile video { width:100%; height:100%; object-fit:cover; }
+    .room-tile.me video { transform:scaleX(-1); }
+    .room-tile .rt-name { position:absolute; bottom:8px; left:8px; background:rgba(0,0,0,0.5); color:#fff; font-size:0.72rem; padding:3px 8px; border-radius:100px; }
+    @media (max-width:760px){ .room-grid, .room-grid.g2, .room-grid.g3, .room-grid.g4, .room-grid.g5, .room-grid.g6 { grid-template-columns:1fr 1fr; } }
+
     /* ── Library ── */
     .lib-search { display:flex; align-items:center; gap:10px; background:var(--cream); border:1px solid var(--border); border-radius:14px; padding:6px 6px 6px 16px; }
     .lib-search .si { font-size:1rem; opacity:.6; }
@@ -556,6 +570,11 @@
         <!-- ───── FRIENDS ───── -->
         <section class="view" id="view-friends">
           <div class="view-head"><h1>Friends</h1><p>See who's online, what they're learning, and jump in together.</p></div>
+          <div class="panel" style="margin-bottom:22px;">
+            <div class="row-between" style="margin-bottom:6px;"><div class="panel-title" style="margin:0;">Group rooms 👥</div><button class="btn-sm btn-gold" id="new-room-btn">＋ New room</button></div>
+            <div class="panel-sub">Learn in a group — video chavruta for three or more.</div>
+            <div class="list" id="rooms-list"><div class="empty"><p>No open rooms.<br><span class="em">Start one and invite your chavrutas.</span></p></div></div>
+          </div>
           <div class="panel" id="requests-panel" style="display:none; margin-bottom:22px;">
             <div class="panel-title">Friend requests</div>
             <div class="panel-sub">People who want to learn with you.</div>
@@ -782,6 +801,20 @@
     </div>
   </div>
 
+  <!-- Group room (multi-party video) -->
+  <div class="call-bg" id="room-modal">
+    <div class="call" style="flex-direction:column;">
+      <div class="room-top"><span id="room-title">Group room</span><span id="room-count" class="room-count"></span></div>
+      <div class="room-grid" id="room-grid"></div>
+      <div class="call-controls" style="position:static;transform:none;margin:0 auto 18px;">
+        <button class="call-btn" id="room-learn" title="Learn together">📖</button>
+        <button class="call-btn" id="room-mute" title="Mute">🎤</button>
+        <button class="call-btn" id="room-cam" title="Camera">📹</button>
+        <button class="call-btn hangup" id="room-leave" title="Leave">📞</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Incoming call banner -->
   <div class="incoming-call" id="incoming-call">
     <div class="avatar sm" id="ic-avatar">?</div>
@@ -797,7 +830,7 @@
     import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import {
       getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, addDoc,
-      collection, onSnapshot, serverTimestamp, query, where
+      collection, onSnapshot, serverTimestamp, query, where, getDocs
     } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -1522,9 +1555,9 @@
 
     // Push the text I'm reading to my call partner (so we stay on the same daf)
     function shareReaderRef(ref){
-      if(!activeCallId || !ref || ref===lastSharedRef) return;
-      lastSharedRef = ref;
-      updateDoc(doc(db,'calls',activeCallId),{ sharedRef:ref }).catch(()=>{});
+      if(!ref || ref===lastSharedRef) return;
+      if(activeCallId){ lastSharedRef=ref; updateDoc(doc(db,'calls',activeCallId),{ sharedRef:ref }).catch(()=>{}); }
+      else if(roomId){ lastSharedRef=ref; updateDoc(doc(db,'rooms',roomId),{ sharedRef:ref }).catch(()=>{}); }
     }
 
     async function loadReaderRef(){
@@ -1850,6 +1883,7 @@
       readerCurRef = ref;
       $('reader-modal').classList.add('show'); applyReaderPrefs(); loadReaderRef();
       if(!$('call-modal').classList.contains('mini') && $('call-modal').classList.contains('show')) minimizeCall();
+      if($('room-modal').classList.contains('show') && !$('room-modal').classList.contains('mini')) $('room-modal').classList.add('mini');
       toast('📖 Your chavruta opened a text');
     }
 
@@ -1981,6 +2015,115 @@
     // Chat thread "Call" button
     $('thread-call')?.addEventListener('click',()=>{ if(activeThreadUser) startCall(activeThreadUser.uid, activeThreadUser.name, activeThreadUser.photoURL); });
 
+    /* ═══════════ GROUP ROOMS (multi-party WebRTC mesh) ═══════════ */
+    let roomId=null, roomLocalStream=null, roomPeers={};
+    let roomUnsubs=[];
+    const roomConnId=(a,b)=>[a,b].sort().join('_');
+
+    async function createRoom(){
+      const name = (profile&&profile.name) ? profile.name.split(' ')[0]+"'s room" : 'Group room';
+      try{ const ref=await addDoc(collection(db,'rooms'),{ name, host:currentUser.uid, hostName:profile?.name||'', createdAt:serverTimestamp() }); joinRoom(ref.id, name); }
+      catch(e){ console.error(e); toast('Could not create room.'); }
+    }
+
+    async function joinRoom(id, name){
+      if(roomId){ toast('Already in a room.'); return; }
+      if(activeCallId){ toast('Leave your call first.'); return; }
+      try{ roomLocalStream=await navigator.mediaDevices.getUserMedia({ video:{width:{ideal:640},height:{ideal:480},facingMode:'user'}, audio:{echoCancellation:true,noiseSuppression:true} }); }
+      catch(e){ toast('Allow camera & mic to join.'); return; }
+      roomId=id;
+      $('room-title').textContent=name||'Group room';
+      $('room-modal').classList.add('show'); $('room-grid').innerHTML='';
+      addRoomTile(currentUser.uid, { name:profile?.name||'You', photoURL:currentUser.photoURL }, roomLocalStream, true);
+      await setDoc(doc(db,'rooms',id,'participants',currentUser.uid),{ uid:currentUser.uid, name:profile?.name||'', photoURL:currentUser.photoURL||'', joinedAt:serverTimestamp() });
+      roomUnsubs.push(onSnapshot(collection(db,'rooms',id,'participants'),(snap)=>{
+        updateRoomCount(snap.size);
+        snap.docChanges().forEach(c=>{ const p=c.doc.data(); if(p.uid===currentUser.uid) return;
+          if(c.type==='added') connectRoomPeer(p.uid, p);
+          if(c.type==='removed') removeRoomPeer(p.uid);
+        });
+      }));
+      // shared text for the whole room
+      roomUnsubs.push(onSnapshot(doc(db,'rooms',id),(snap)=>{ const d=snap.data(); if(d) applySharedRef(d.sharedRef); }));
+    }
+
+    function connectRoomPeer(otherUid, info){
+      if(roomPeers[otherUid]) return;
+      const initiator = currentUser.uid < otherUid;
+      const connRef = doc(db,'rooms',roomId,'connections',roomConnId(currentUser.uid,otherUid));
+      const pc = new RTCPeerConnection(ICE_CONFIG);
+      roomPeers[otherUid]=pc;
+      roomLocalStream.getTracks().forEach(t=>pc.addTrack(t, roomLocalStream));
+      const remote=new MediaStream();
+      addRoomTile(otherUid, info, remote, false);
+      pc.ontrack=(e)=>{ e.streams[0].getTracks().forEach(t=>remote.addTrack(t)); };
+      const myCands=collection(connRef, initiator?'callerCandidates':'calleeCandidates');
+      const theirCands=collection(connRef, initiator?'calleeCandidates':'callerCandidates');
+      pc.onicecandidate=(e)=>{ if(e.candidate) addDoc(myCands, e.candidate.toJSON()); };
+      roomUnsubs.push(onSnapshot(theirCands,(snap)=>{ snap.docChanges().forEach(c=>{ if(c.type==='added') pc.addIceCandidate(new RTCIceCandidate(c.doc.data())).catch(()=>{}); }); }));
+      if(initiator){
+        (async()=>{ try{ const offer=await pc.createOffer(); await pc.setLocalDescription(offer); await setDoc(connRef,{ offer:{type:offer.type,sdp:offer.sdp} },{merge:true}); }catch(e){console.error(e);} })();
+        roomUnsubs.push(onSnapshot(connRef, async(snap)=>{ const d=snap.data(); if(d&&d.answer&&pc.signalingState!=='stable'&&!pc.currentRemoteDescription){ try{ await pc.setRemoteDescription(new RTCSessionDescription(d.answer)); }catch(e){} } }));
+      } else {
+        roomUnsubs.push(onSnapshot(connRef, async(snap)=>{ const d=snap.data(); if(d&&d.offer&&!pc.currentRemoteDescription){ try{ await pc.setRemoteDescription(new RTCSessionDescription(d.offer)); const ans=await pc.createAnswer(); await pc.setLocalDescription(ans); await setDoc(connRef,{ answer:{type:ans.type,sdp:ans.sdp} },{merge:true}); }catch(e){} } }));
+      }
+    }
+
+    function removeRoomPeer(uid){
+      const pc=roomPeers[uid]; if(pc){ try{pc.close();}catch(e){} delete roomPeers[uid]; }
+      const tile=document.getElementById('rtile-'+uid); if(tile) tile.remove(); layoutRoomGrid();
+      if(roomId){ try{ deleteDoc(doc(db,'rooms',roomId,'connections',roomConnId(currentUser.uid,uid))); }catch(e){} }
+    }
+
+    function addRoomTile(uid, info, stream, isMe){
+      let tile=document.getElementById('rtile-'+uid);
+      if(!tile){ tile=document.createElement('div'); tile.className='room-tile'+(isMe?' me':''); tile.id='rtile-'+uid;
+        const v=document.createElement('video'); v.autoplay=true; v.playsInline=true; if(isMe)v.muted=true; tile.appendChild(v);
+        const n=document.createElement('div'); n.className='rt-name'; n.textContent=isMe?'You':(info.name||'Learner'); tile.appendChild(n);
+        $('room-grid').appendChild(tile);
+      }
+      tile.querySelector('video').srcObject=stream; layoutRoomGrid();
+    }
+    function layoutRoomGrid(){ const g=$('room-grid'); g.className='room-grid g'+Math.min(g.children.length,6); }
+    function updateRoomCount(n){ $('room-count').textContent = n+(n===1?' in room':' in room'); }
+
+    async function leaveRoom(){
+      const id=roomId; roomId=null;
+      roomUnsubs.forEach(u=>{try{u();}catch(e){}}); roomUnsubs=[];
+      Object.values(roomPeers).forEach(pc=>{try{pc.close();}catch(e){}}); roomPeers={};
+      if(roomLocalStream){ roomLocalStream.getTracks().forEach(t=>t.stop()); roomLocalStream=null; }
+      $('room-modal').classList.remove('show','mini'); $('room-grid').innerHTML='';
+      if(id){
+        try{ await deleteDoc(doc(db,'rooms',id,'participants',currentUser.uid)); }catch(e){}
+        try{ const ps=await getDocs(collection(db,'rooms',id,'participants')); if(ps.empty) await deleteDoc(doc(db,'rooms',id)); }catch(e){}
+      }
+    }
+
+    function startRoomsListener(){
+      onSnapshot(collection(db,'rooms'),(snap)=>{ renderRoomsList(snap.docs.map(d=>({id:d.id,...d.data()}))); },(e)=>console.error('rooms listener:',e));
+    }
+    function renderRoomsList(rooms){
+      const el=$('rooms-list'); if(!el) return;
+      rooms.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+      if(!rooms.length){ el.innerHTML='<div class="empty"><p>No open rooms.<br><span class="em">Start one and invite your chavrutas.</span></p></div>'; return; }
+      el.innerHTML='';
+      rooms.forEach(r=>{
+        const row=document.createElement('div'); row.className='user-row';
+        const mine = roomId===r.id;
+        row.innerHTML=`<div class="avatar">👥</div><div class="user-info"><div class="user-name">${escapeHtml(r.name||'Group room')}</div><div class="user-meta"><span>Hosted by ${escapeHtml((r.hostName||'someone').split(' ')[0]||'someone')}</span></div></div><div class="row-actions"><button class="btn-sm ${mine?'btn-out':'btn-gold'} join-room" ${mine?'disabled':''}>${mine?'In room':'Join'}</button></div>`;
+        if(!mine) row.querySelector('.join-room').addEventListener('click',()=>joinRoom(r.id, r.name));
+        el.appendChild(row);
+      });
+    }
+
+    $('new-room-btn')?.addEventListener('click', createRoom);
+    $('room-leave').addEventListener('click',(e)=>{ e.stopPropagation(); leaveRoom(); });
+    $('room-mute').addEventListener('click',(e)=>{ e.stopPropagation(); if(!roomLocalStream)return; const t=roomLocalStream.getAudioTracks()[0]; if(t){t.enabled=!t.enabled; $('room-mute').classList.toggle('off',!t.enabled);} });
+    $('room-cam').addEventListener('click',(e)=>{ e.stopPropagation(); if(!roomLocalStream)return; const t=roomLocalStream.getVideoTracks()[0]; if(t){t.enabled=!t.enabled; $('room-cam').classList.toggle('off',!t.enabled);} });
+    $('room-learn').addEventListener('click',(e)=>{ e.stopPropagation(); $('room-modal').classList.add('mini'); switchView('library'); toast('Pick a text — the room will see it too 📖'); });
+    $('room-modal').addEventListener('click',()=>{ if($('room-modal').classList.contains('mini')) $('room-modal').classList.remove('mini'); });
+    window.addEventListener('pagehide',()=>{ if(roomId&&currentUser){ try{ deleteDoc(doc(db,'rooms',roomId,'participants',currentUser.uid)); }catch(e){} } });
+
     /* ═══════════ Firestore listeners (includes chat) ═══════════ */
     function startListeners(){
       if(listenersStarted)return; listenersStarted=true;
@@ -1992,6 +2135,7 @@
       onSnapshot(collection(db,'users',currentUser.uid,'sessions'),(s)=>{ sessionsList=s.docs.map(d=>d.data()); renderActivity(); },(e)=>console.error(e));
       startChatListeners();
       startCallListener();
+      startRoomsListener();
     }
   </script>
 
